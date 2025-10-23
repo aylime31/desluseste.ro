@@ -9,6 +9,9 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
 
 # --- LOGGING SETUP ---
 def log_step(message):
@@ -22,6 +25,15 @@ if OPENAI_API_KEY:
     print(f"--- [DEBUG] Cheia API a fost încărcată cu succes. Se termină în: ...{OPENAI_API_KEY[-4:]}")
 else:
     print("--- [DEBUG] EROARE CRITICĂ: Cheia API NU a fost încărcată.")
+
+# --- OCR Configuration ---
+# System dependencies required:
+# - Ubuntu/Debian: sudo apt-get install tesseract-ocr tesseract-ocr-ron poppler-utils
+# - MacOS: brew install tesseract tesseract-lang poppler
+# - Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+TESSERACT_CONFIG = '--psm 6 --oem 3'  # Page segmentation mode 6, OCR Engine mode 3
+OCR_LANGUAGE = 'ron'  # Romanian
+OCR_THRESHOLD_CHARS = 100  # Minimum chars before attempting OCR
 
 # --- Modele Pydantic (neschimbate) ---
 class IssueItem(BaseModel):
@@ -49,6 +61,98 @@ app.add_middleware(
 )
 
 # --- Funcții Helper ---
+def perform_ocr_on_pdf(pdf_path: str) -> str:
+    """
+    Performs OCR on a PDF file using Tesseract with Romanian language support.
+    
+    This function converts each page of the PDF to an image and applies OCR.
+    It's designed to handle scanned documents and image-based PDFs that don't
+    contain extractable text.
+    
+    Args:
+        pdf_path: Absolute path to temporary PDF file
+        
+    Returns:
+        Extracted text string with normalized whitespace
+        
+    Raises:
+        RuntimeError: If OCR completely fails (no text from any page)
+        
+    Performance:
+        - Expected: ~3-5 seconds per page for typical scans
+        - Memory: Processes page-by-page to stay under 500MB for 20-page PDFs
+        
+    Limitations:
+        - Handwritten text may not be recognized accurately
+        - Low-quality scans (<200 DPI) will have reduced accuracy
+        - Romanian diacritics require 'tesseract-ocr-ron' language pack
+    """
+    log_step("Începe procesul OCR pentru PDF scanat...")
+    
+    try:
+        # Convert PDF to images (one image per page)
+        # DPI 300 oferă un echilibru bun între calitate și performanță
+        images = convert_from_path(pdf_path, dpi=300)
+        log_step(f"PDF convertit în {len(images)} imagini pentru OCR.")
+    except Exception as e:
+        log_step(f"EROARE la convertirea PDF în imagini: {e}")
+        raise RuntimeError(f"Nu s-a putut converti PDF-ul în imagini pentru OCR: {str(e)}")
+    
+    extracted_text_parts = []
+    failed_pages = []
+    
+    for page_num, image in enumerate(images, start=1):
+        try:
+            log_step(f"OCR pagina {page_num}/{len(images)}...")
+            
+            # Apply OCR with Romanian language and custom configuration
+            page_text = pytesseract.image_to_string(
+                image,
+                lang=OCR_LANGUAGE,
+                config=TESSERACT_CONFIG
+            )
+            
+            # Clean and normalize whitespace
+            page_text = page_text.strip()
+            
+            if page_text:
+                extracted_text_parts.append(page_text)
+                log_step(f"Pagina {page_num}: {len(page_text)} caractere extrase.")
+            else:
+                log_step(f"AVERTISMENT: Pagina {page_num} nu a produs text (pagină goală sau imagine de calitate scăzută).")
+                failed_pages.append(page_num)
+                
+        except pytesseract.TesseractNotFoundError:
+            log_step("EROARE CRITICĂ: Tesseract OCR nu este instalat pe sistem!")
+            raise RuntimeError(
+                "Tesseract OCR nu este instalat. "
+                "Ubuntu/Debian: sudo apt-get install tesseract-ocr tesseract-ocr-ron"
+            )
+        except Exception as e:
+            log_step(f"EROARE la OCR pentru pagina {page_num}: {e}")
+            failed_pages.append(page_num)
+            # Continue with other pages (graceful degradation)
+            continue
+    
+    # Combine all extracted text
+    full_text = "\n\n".join(extracted_text_parts)
+    
+    # Log summary
+    total_chars = len(full_text)
+    log_step(f"OCR finalizat. {total_chars} caractere extrase din {len(images)} pagini.")
+    
+    if failed_pages:
+        log_step(f"AVERTISMENT: {len(failed_pages)} pagini nu au putut fi procesate: {failed_pages}")
+    
+    if not full_text.strip():
+        raise RuntimeError(
+            "OCR nu a reușit să extragă text din nicio pagină. "
+            "Verificați calitatea scanării sau asigurați-vă că 'tesseract-ocr-ron' este instalat."
+        )
+    
+    return full_text
+
+
 def chunking_inteligent_regex(text: str) -> list[str]:
     pattern = r'(?=Art\.\s*\d+|Articolul\s*\d+|CAPITOLUL\s+[IVXLCDM]+)'
     chunks = re.split(pattern, text)
@@ -130,19 +234,84 @@ def genereaza_sinteza_sync(toate_problemele: list) -> str:
 def read_root():
     return {"status": "API-ul Desluseste.ro este funcțional!"}
 
+@app.post("/test-ocr/")
+async def test_ocr_endpoint(file: UploadFile = File(...)):
+    """
+    Debug endpoint to test OCR without full analysis pipeline.
+    
+    Useful for:
+    - Testing Tesseract installation and Romanian language pack
+    - Verifying OCR quality on sample documents
+    - Performance benchmarking
+    
+    Returns preview of extracted text, character count, and validity check.
+    """
+    log_step("Test OCR endpoint apelat.")
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+        temp.write(await file.read())
+        temp_path = temp.name
+    
+    try:
+        ocr_text = perform_ocr_on_pdf(temp_path)
+        return {
+            "ocr_text_preview": ocr_text[:500],
+            "total_chars": len(ocr_text),
+            "total_words": len(ocr_text.split()),
+            "appears_valid": len(ocr_text.strip()) > OCR_THRESHOLD_CHARS,
+            "status": "success"
+        }
+    except Exception as e:
+        log_step(f"Eroare în test-ocr: {e}")
+        return {
+            "status": "error",
+            "error_message": str(e),
+            "ocr_text_preview": "",
+            "total_chars": 0,
+            "appears_valid": False
+        }
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
 async def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
     log_step("Început request /analizeaza-pdf/")
     
     try:
         text_document = ""
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as temp:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
             temp.write(await file.read())
-            temp.seek(0)
-            with fitz.open(stream=temp.read(), filetype="pdf") as doc:
-                text_document = "".join(page.get_text() for page in doc)
+            temp_path = temp.name
+        
+        try:
+            # EXISTING: Try native text extraction first
+            with open(temp_path, 'rb') as f:
+                with fitz.open(stream=f.read(), filetype="pdf") as doc:
+                    text_document = "".join(page.get_text() for page in doc)
+            
+            log_step(f"Extragere nativă: {len(text_document)} caractere.")
+            
+            # NEW: Fallback to OCR if no meaningful text extracted
+            if len(text_document.strip()) < OCR_THRESHOLD_CHARS:
+                log_step("Text insuficient. Încercare OCR...")
+                text_document = perform_ocr_on_pdf(temp_path)
+                
+        finally:
+            # Clean up temp file
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+                
         log_step(f"TEXT EXTRAS (primele 200 caractere): {text_document[:200]}...")
-        if not text_document.strip(): raise HTTPException(status_code=400, detail="Documentul PDF nu conține text extragibil.")
+        
+        if not text_document.strip():
+            raise HTTPException(
+                status_code=400, 
+                detail="PDF nu conține text extragibil și OCR nu a reușit să extragă text."
+            )
+            
+    except HTTPException:
+        raise
     except Exception as e:
         log_step(f"EROARE LA EXTRAGEREA TEXTULUI: {e}")
         raise HTTPException(status_code=500, detail=f"A apărut o eroare la procesarea PDF: {str(e)}")

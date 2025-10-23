@@ -6,3 +6,6 @@ PyMuPDF
 aiohttp
 python-dotenv
 requests
+pytesseract==0.3.10
+pdf2image==1.16.3
+Pillow==10.0.0
