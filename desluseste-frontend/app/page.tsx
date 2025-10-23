@@ -65,10 +65,17 @@ export default function HomePage() {
   };
 
   const getCategoryBadgeVariant = (category: string): "destructive" | "secondary" | "outline" | "default" => {
-    if (category.includes('Risc Juridic')) return 'destructive';
-    if (category.includes('Confidențialitate')) return 'secondary';
-    if (category.includes('Costuri')) return 'outline';
-    return 'default';
+    // Potrivim noile categorii "Academice"
+    if (category.includes('Severe') || category.includes('Financiare')) {
+      return 'destructive'; // Roșu pentru consecințe severe
+    }
+    if (category.includes('Date') || category.includes('Datelor')) {
+      return 'secondary'; // Gri pentru date personale
+    }
+    if (category.includes('Costuri')) {
+      return 'outline'; // Contur pentru costuri
+    }
+    return 'default'; // Albastru pentru restul
   };
   
   // --- JSX (INTERFAȚA VIZUALĂ) ---

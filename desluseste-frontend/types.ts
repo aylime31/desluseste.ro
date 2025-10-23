@@ -3,12 +3,18 @@
 export interface IssueItem {
   titlu_problema: string;
   clauza_originala: string;
-  // Categoriile posibile sunt acum:
-  // 'Risc Juridic Major', 'Limbaj Ambigiu/Neclar', 'Obligație Unilaterală', 
-  // 'Costuri Ascunse / Comisioane', 'Confidențialitate / Date Personale'
+  
+  // Noile categorii din prompt-ul "Academic"
+  // Posibile valori:
+  // 'Consecințe Financiare Severe'
+  // 'Ambiguitate Lingvistică'
+  // 'Asimetrie a Obligațiilor'
+  // 'Referințe la Costuri Suplimentare'
+  // 'Procesarea Datelor'
   categorie_problema: string;
-  nivel_atentie: string; // 'Scăzut', 'Mediu', 'Ridicat'
+
   explicatie_simpla: string;
+  nivel_atentie: string; // 'Scăzut', 'Mediu', 'Ridicat'
   sugestie: string;
 }
 
