@@ -35,10 +35,10 @@ export default function HomePage() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('https://deslusestero-production.up.railway.app/analizeaza-pdf/', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch('https://desluseste-ro.onrender.com/analizeaza-pdf/', {
+    method: 'POST',
+    body: formData,
+});
 
       if (!response.ok) {
         const errorData = await response.json();
