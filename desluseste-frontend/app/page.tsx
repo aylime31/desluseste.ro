@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, ChangeEvent, Fragment } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import type { AnalysisResponse, IssueItem } from '../types';
+import type { AnalysisResponse } from '../types';
 
 export default function HomePage() {
   // --- STATE MANAGEMENT ---
@@ -36,26 +36,39 @@ export default function HomePage() {
 
     try {
       const response = await fetch('https://desluseste-ro.onrender.com/analizeaza-pdf/', {
-    method: 'POST',
-    body: formData,
-});
+        method: 'POST',
+        body: formData,
+      });
 
+      // Verificăm dacă răspunsul este OK. Dacă nu, încercăm să parsăm eroarea.
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'A apărut o eroare la server.');
+        // Încercăm să citim răspunsul ca text mai întâi, pentru a evita erori de parsare JSON pe erori HTML
+        const errorText = await response.text();
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.detail || 'A apărut o eroare la server.');
+        } catch {
+          // Dacă răspunsul nu e JSON, afișăm eroarea ca text
+          throw new Error(`Eroare de server (${response.status}): ${errorText.slice(0, 100)}`);
+        }
       }
 
       const data: AnalysisResponse = await response.json();
       setAnalysisResult(data);
     } catch (err: any) {
-      setError(err.message || 'Nu s-a putut conecta la serverul de analiză.');
+      // Afișăm un mesaj de eroare mai specific pentru CORS sau probleme de rețea
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+        setError('Eroare de rețea sau CORS. Asigură-te că serverul backend este activ și configurat corect.');
+      } else {
+        setError(err.message || 'Nu s-a putut conecta la serverul de analiză.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
   
   // --- FUNCȚII HELPER PENTRU STILIZARE ---
-  const getAttentionColor = (level: string): string => {
+  const getAttentionColor = (level: string = 'Scăzut'): string => {
     switch (level) {
       case 'Ridicat': return 'bg-red-600';
       case 'Mediu': return 'bg-yellow-500';
@@ -64,18 +77,11 @@ export default function HomePage() {
     }
   };
 
-  const getCategoryBadgeVariant = (category: string): "destructive" | "secondary" | "outline" | "default" => {
-    // Potrivim noile categorii "Academice"
-    if (category.includes('Severe') || category.includes('Financiare')) {
-      return 'destructive'; // Roșu pentru consecințe severe
-    }
-    if (category.includes('Date') || category.includes('Datelor')) {
-      return 'secondary'; // Gri pentru date personale
-    }
-    if (category.includes('Costuri')) {
-      return 'outline'; // Contur pentru costuri
-    }
-    return 'default'; // Albastru pentru restul
+  const getCategoryBadgeVariant = (category: string = ''): "destructive" | "secondary" | "outline" | "default" => {
+    if (category.includes('Severe') || category.includes('Financiare')) return 'destructive';
+    if (category.includes('Date') || category.includes('Datelor')) return 'secondary';
+    if (category.includes('Costuri')) return 'outline';
+    return 'default';
   };
   
   // --- JSX (INTERFAȚA VIZUALĂ) ---
@@ -124,25 +130,31 @@ export default function HomePage() {
               {/* Problemele Identificate */}
               <div className="space-y-4">
                 <h3 className="font-bold text-lg">Puncte de Atenție</h3>
-                {analysisResult.probleme_identificate.length === 0 ? (
+                {analysisResult.probleme_identificate?.length === 0 ? (
                   <p className="text-gray-600">Felicitări! Nu am identificat puncte de atenție semnificative în acest document.</p>
                 ) : (
-                  analysisResult.probleme_identificate.map((item, index) => (
-                    <div key={index} className="border p-4 rounded-lg shadow-sm bg-white">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-2">
-                        <h4 className="font-semibold text-base sm:text-lg">{item.titlu_problema}</h4>
-                        <div className="flex items-center space-x-2 flex-shrink-0">
-                           <Badge variant={getCategoryBadgeVariant(item.categorie_problema)}>{item.categorie_problema}</Badge>
-                           <span className={`px-2 py-1 text-xs font-bold text-white rounded-full ${getAttentionColor(item.nivel_atentie)}`}>{item.nivel_atentie}</span>
+                  analysisResult.probleme_identificate?.map((item, index) => {
+                    // --- VERIFICARE DE SIGURANȚĂ PENTRU A PREVENI ERORILE DE RANDARE ---
+                    if (!item || typeof item.categorie_problema === 'undefined') {
+                      return null;
+                    }
+                    return (
+                      <div key={index} className="border p-4 rounded-lg shadow-sm bg-white">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-2">
+                          <h4 className="font-semibold text-base sm:text-lg">{item.titlu_problema}</h4>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                             <Badge variant={getCategoryBadgeVariant(item.categorie_problema)}>{item.categorie_problema}</Badge>
+                             <span className={`px-2 py-1 text-xs font-bold text-white rounded-full ${getAttentionColor(item.nivel_atentie)}`}>{item.nivel_atentie}</span>
+                          </div>
                         </div>
+                        <blockquote className="border-l-2 pl-3 my-2 text-xs text-gray-500 italic">
+                          "{item.clauza_originala}"
+                        </blockquote>
+                        <p className="text-sm text-gray-800 mt-2">{item.explicatie_simpla}</p>
+                        <p className="text-sm text-blue-700 mt-3 font-medium">👉 Sugestie: {item.sugestie}</p>
                       </div>
-                      <blockquote className="border-l-2 pl-3 my-2 text-xs text-gray-500 italic">
-                        "{item.clauza_originala}"
-                      </blockquote>
-                      <p className="text-sm text-gray-800 mt-2">{item.explicatie_simpla}</p>
-                      <p className="text-sm text-blue-700 mt-3 font-medium">👉 Sugestie: {item.sugestie}</p>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </CardContent>

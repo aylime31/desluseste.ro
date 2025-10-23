@@ -26,8 +26,19 @@ class AnalysisResponse(BaseModel):
     text_original: str
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+#app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+origins = [
+    "https://desluseste.ro",
+    "http://localhost:3000", # Pentru dezvoltare locală
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # Folosim lista specifică aici
+    allow_credentials=True,
+    allow_methods=["GET", "POST"], # Specificăm doar metodele folosite
+    allow_headers=["*"],
+)
 # --- Endpoint-ul principal (SIMPLIFICAT) ---
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
 def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
