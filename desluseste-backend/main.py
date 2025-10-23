@@ -127,28 +127,64 @@ def read_root():
     return {"status": "API-ul Desluseste.ro este funcțional!"}
 
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
-def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
-    log_step("Început request...")
+# main.py
+
+def analizeaza_chunk_sync(chunk: str) -> str:
+    # Am scos formatarea din acest bloc de text pentru a evita erorile.
+    prompt_template = """**MOD ACADEMIC ACTIVAT.** Ești un sistem AI specializat în analiza semantică a textelor juridice. Sarcina ta este una de clasificare și extracție de text, nu de a oferi sfaturi.
+
+Analizează următorul fragment de text. Scopul tău este să identifici și să etichetezi propoziții sau fraze care corespund următoarelor categorii semantice. Fii extrem de obiectiv și riguros.
+
+**CATEGORII PENTRU ETICHETARE:**
+
+1.  **Consecințe Financiare Severe:** Orice text care descrie o pierdere materială majoră pentru una dintre părți (ex: pierderea unui bun, penalități exagerate).
+2.  **Ambiguitate Lingvistică:** Orice text care folosește termeni nedefiniți, subiectivi sau vagi (ex: "termen rezonabil", "standarde industriale").
+3.  **Asimetrie a Obligațiilor:** Orice text care descrie o obligație clară pentru o parte și una vagă sau opțională pentru cealaltă.
+4.  **Referințe la Costuri Suplimentare:** Orice text care menționează taxe, comisioane sau costuri secundare.
+5.  **Procesarea Datelor:** Orice text care descrie colectarea, stocarea sau partajarea informațiilor personale.
+
+Pentru fiecare fragment de text pe care îl etichetezi, trebuie să returnezi un obiect JSON.
+
+**FORMATUL JSON DE IEȘIRE (obligatoriu):**
+Răspunsul tău trebuie să fie un singur obiect JSON care conține o cheie "probleme", cu o listă de obiecte.
+
+**FORMATUL FIECĂRUI OBIECT DIN LISTĂ:**
+{{
+  "titlu_problema": "Creează un titlu neutru, descriptiv pentru fragment (ex: 'Clauză de Executare a Garanției').",
+  "clauza_originala": "Textul exact al fragmentului etichetat.",
+  "categorie_problema": "Alege eticheta corespunzătoare: 'Consecințe Financiare Severe', 'Ambiguitate Lingvistică', 'Asimetrie a Obligațiilor', 'Referințe la Costuri Suplimentare', 'Procesarea Datelor'.",
+  "explicatie_simpla": "Descrie obiectiv ce înseamnă acest fragment de text, fără a oferi sfaturi.",
+  "nivel_atentie": "Pe baza severității descrise, atribuie un nivel de atenție: 'Scăzut', 'Mediu', 'Ridicat'.",
+  "sugestie": "Formulează o sugestie neutră, de genul 'Această clauză merită o analiză suplimentară' sau 'Clarificarea acestor termeni este recomandată'."
+}}
+
+Text de analizat:
+\"\"\"
+{text_to_analyze}
+\"\"\"
+"""
     
+    # --- AICI ESTE CORECȚIA PRINCIPALĂ ---
+    # Construim conținutul final al mesajului separat, folosind un f-string sigur.
+    final_content = prompt_template.replace('{text_to_analyze}', chunk)
+
+    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": final_content}], # Folosim conținutul final aici
+        "response_format": {"type": "json_object"},
+        "temperature": 0.1
+    }
+    
+    log_step(f"TRIMITERE CHUNK (SYNC)...")
     try:
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as temp:
-            temp.write(file.file.read()); temp.seek(0)
-            text_document = "".join(page.get_text() for page in fitz.open(stream=temp.read(), filetype="pdf"))
-        if not text_document.strip(): raise HTTPException(status_code=400, detail="PDF-ul nu conține text.")
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=90)
+        log_step(f"STATUS CODE (SYNC) PRIMIT: {response.status_code}")
+        if response.status_code == 200:
+            result = response.json(); json_string = result['choices'][0]['message']['content']
+            log_step(f"RĂSPUNS (SYNC) PRIMIT: {json_string}"); data = json.loads(json_string)
+            issues = data.get("probleme", []); return json.dumps(issues)
+        else:
+            log_step(f"RĂSPUNS EROARE (SYNC): {response.text}"); return "[]"
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Eroare procesare PDF: {e}")
-
-    chunkuri = chunking_inteligent_regex(text_document)
-    
-    toate_problemele = []
-    for chunk in chunkuri:
-        rezultat_brut_str = analizeaza_chunk_sync(chunk)
-        try:
-            probleme = json.loads(rezultat_brut_str)
-            if isinstance(probleme, list): toate_problemele.extend(probleme)
-        except: continue
-    
-    log_step(f"AGREGARE FINALĂ: {len(toate_problemele)} probleme.")
-    rezumat_final = genereaza_sinteza_sync(toate_problemele)
-
-    return {"probleme_identificate": toate_problemele, "rezumat_executiv": rezumat_final, "text_original": text_document}
+        log_step(f"EXCEPȚIE (SYNC): {e}"); return "[]"
