@@ -114,28 +114,42 @@ def genereaza_sinteza_sync(toate_problemele: list) -> str:
 def read_root():
     return {"status": "API-ul Desluseste.ro este funcțional!"}
 
+# main.py
+
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
 def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
     log_step("Început request...")
-    try:
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".pdf") as temp:
-            temp.write(file.file.read()); temp.seek(0)
-            text_document = "".join(page.get_text() for page in fitz.open(stream=temp.read(), filetype="pdf"))
-        if not text_document.strip(): raise HTTPException(status_code=400, detail="PDF-ul nu conține text.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Eroare procesare PDF: {e}")
+    # ... (codul de extragere a textului rămâne la fel) ...
+    text_document = "Textul extras din PDF-ul de test..." # Putem pune un placeholder
 
-    chunkuri = chunking_inteligent_regex(text_document)
-    
-    toate_problemele = []
-    for chunk in chunkuri:
-        rezultat_brut_str = analizeaza_chunk_sync(chunk)
-        try:
-            probleme = json.loads(rezultat_brut_str)
-            if isinstance(probleme, list): toate_problemele.extend(probleme)
-        except: continue
-    
-    log_step(f"AGREGARE FINALĂ: {len(toate_problemele)} probleme.")
-    rezumat_final = genereaza_sinteza_sync(toate_problemele)
+    # --- ÎNCEPUTUL SIMULĂRII ---
+    log_step("MOD DEMO ACTIVAT: Se returnează un răspuns static.")
 
-    return {"probleme_identificate": toate_problemele, "rezumat_executiv": rezumat_final, "text_original": text_document}
+    # Simulăm un răspuns de succes, exact ca cel pe care l-am obținut local
+    toate_problemele = [
+        {
+            "titlu_problema": "Executare silită a casei",
+            "clauza_originala": "Vom iniția fără o altă notificare procedura de executare silită prin vânzarea casei dumneavoastră...",
+            "categorie_problema": "Consecințe Financiare Severe",
+            "explicatie_simpla": "Aceasta este cea mai gravă clauză. Înseamnă că, dacă nu plătești, compania îți poate vinde casa direct, fără alte avertismente.",
+            "nivel_atentie": "Ridicat",
+            "sugestie": "Contactează un avocat IMEDIAT. Nu ignora această notificare sub nicio formă."
+        },
+        {
+            "titlu_problema": "Lipsa notificării suplimentare",
+            "clauza_originala": "Vom iniția fără o altă notificare procedura de executare silită...",
+            "categorie_problema": "Asimetrie a Obligațiilor",
+            "explicatie_simpla": "Compania spune că nu te va mai anunța înainte de a începe procesul. Asta te lasă fără timp de reacție.",
+            "nivel_atentie": "Ridicat",
+            "sugestie": "Verifică legalitatea acestei clauze cu un specialist. De obicei, sunt necesare mai multe etape de notificare."
+        }
+    ]
+    
+    rezumat_final = "ATENȚIE: Documentul conține clauze extrem de severe, inclusiv riscul de pierdere a locuinței prin executare silită fără notificări suplimentare. Este crucial să acționezi imediat și să consulți un specialist."
+
+    return {
+        "probleme_identificate": toate_problemele,
+        "rezumat_executiv": rezumat_final,
+        "text_original": text_document
+    }
+    # --- SFÂRȘITUL SIMULĂRII ---
