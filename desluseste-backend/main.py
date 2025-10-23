@@ -42,45 +42,31 @@ def chunking_inteligent_regex(text: str) -> list[str]:
     return result if result else [text]
 
 def analizeaza_chunk_sync(chunk: str) -> str:
-    prompt_analiza = """SARCINA TA PRINCIPALĂ ESTE SĂ GĂSEȘTI PROBLEME. ESTE MAI BINE SĂ FII PREA PRUDENT DECÂT SĂ OMIȚI CEVA. Prioritizează identificarea oricărei clauze care pare chiar și vag dezavantajoasă.
+    prompt_analiza = """**MOD ACADEMIC ACTIVAT.** Ești un sistem AI specializat în analiza semantică a textelor juridice. Sarcina ta este una de clasificare și extracție de text, nu de a oferi sfaturi.
 
-ACȚIONEAZĂ CA UN AVOCAT AL DIAVOLULUI. Misiunea ta este să protejezi un client neavizat cu orice preț. Fii extrem de sceptic și paranoic. Identifică ABSOLUT ORICE element care miroase a problemă, oricât de mică. Nu presupune că vreo clauză este "standard" sau "normală".
+Analizează următorul fragment de text. Scopul tău este să identifici și să etichetezi propoziții sau fraze care corespund următoarelor categorii semantice. Fii extrem de obiectiv și riguros.
 
-Analizează fragmentul de text de mai jos. Pentru fiecare problemă identificată, clasific-o și explic-o.
+**CATEGORII PENTRU ETICHETARE:**
 
-**CATEGORII DE PROBLEME ȘI EXEMPLE CONCRETE (Fii foarte atent la ele!):**
+1.  **Consecințe Financiare Severe:** Orice text care descrie o pierdere materială majoră pentru una dintre părți (ex: pierderea unui bun, penalități exagerate).
+2.  **Ambiguitate Lingvistică:** Orice text care folosește termeni nedefiniți, subiectivi sau vagi (ex: "termen rezonabil", "standarde industriale").
+3.  **Asimetrie a Obligațiilor:** Orice text care descrie o obligație clară pentru o parte și una vagă sau opțională pentru cealaltă.
+4.  **Referințe la Costuri Suplimentare:** Orice text care menționează taxe, comisioane sau costuri secundare.
+5.  **Procesarea Datelor:** Orice text care descrie colectarea, stocarea sau partajarea informațiilor personale.
 
-1.  **Risc Juridic Major:**
-    *   **Definiție:** Orice consecință disproporționată, penalități uriașe, pierderea unor bunuri esențiale (ex: casă, mașină), renunțări la drepturi fundamentale.
-    *   **Exemplu:** "În caz de neplată, creditorul are dreptul de a vinde imobilul." -> ACESTA ESTE UN RISC MAJOR!
-    *   **Exemplu:** "Penalitățile sunt de 1% pe zi de întârziere." -> ACESTA ESTE UN RISC MAJOR!
+Pentru fiecare fragment de text pe care îl etichetezi, trebuie să returnezi un obiect JSON.
 
-2.  **Limbaj Ambigiu/Neclar:**
-    *   **Definiție:** Termeni vagi, jargon, referințe la alte documente care nu sunt prezente.
-    *   **Exemplu:** "Serviciul va fi restabilit într-un termen rezonabil."
+**FORMATUL JSON DE IEȘIRE (obligatoriu):**
+Răspunsul tău trebuie să fie un singur obiect JSON care conține o cheie "probleme", cu o listă de obiecte.
 
-3.  **Obligație Unilaterală:**
-    *   **Definiție:** O parte are obligații clare, cealaltă are drepturi sau obligații vagi.
-    *   **Exemplu:** "Furnizorul poate schimba prețul oricând, clientul trebuie să plătească."
-
-4.  **Costuri Ascunse / Comisioane:**
-    *   **Definiție:** Orice taxă care nu este inclusă în prețul principal.
-    *   **Exemplu:** "Se va percepe un comision de administrare a dosarului."
-
-5.  **Confidențialitate / Date Personale:**
-    *   **Definiție:** Orice clauză despre colectarea, partajarea sau utilizarea datelor personale. Fii foarte strict.
-    *   **Exemplu:** "Acceptați partajarea datelor dvs. cu partenerii noștri comerciali."
-
-Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă formatul cerut. Obiectul principal trebuie să conțină o cheie "probleme", care este o listă de obiecte JSON. Dacă nu găsești nimic, returnează o listă goală.
-
-**FORMATUL FIECĂRUI OBIECT (Respectă-l cu strictețe!):**
+**FORMATUL FIECĂRUI OBIECT DIN LISTĂ:**
 {{
-  "titlu_problema": "Un titlu scurt și alarmant (ex: 'Risc de Pierdere a Locuinței').",
-  "clauza_originala": "Textul exact al clauzei.",
-  "categorie_problema": "Alege: 'Risc Juridic Major', 'Limbaj Ambigiu/Neclar', 'Obligație Unilaterală', 'Costuri Ascunse / Comisioane', 'Confidențialitate / Date Personale'.",
-  "explicatie_simpla": "Explică riscul în termeni simpli și direcți, subliniind cel mai rău scenariu posibil.",
-  "nivel_atentie": "Alege: 'Scăzut', 'Mediu', 'Ridicat'. Pentru orice Risc Juridic Major, folosește 'Ridicat'.",
-  "sugestie": "O sugestie acționabilă (ex: 'Consultă un avocat IMEDIAT!', 'NU semna înainte de a clarifica acest punct')."
+  "titlu_problema": "Creează un titlu neutru, descriptiv pentru fragment (ex: 'Clauză de Executare a Garanției').",
+  "clauza_originala": "Textul exact al fragmentului etichetat.",
+  "categorie_problema": "Alege eticheta corespunzătoare: 'Consecințe Financiare Severe', 'Ambiguitate Lingvistică', 'Asimetrie a Obligațiilor', 'Referințe la Costuri Suplimentare', 'Procesarea Datelor'.",
+  "explicatie_simpla": "Descrie obiectiv ce înseamnă acest fragment de text, fără a oferi sfaturi.",
+  "nivel_atentie": "Pe baza severității descrise, atribuie un nivel de atenție: 'Scăzut', 'Mediu', 'Ridicat'.",
+  "sugestie": "Formulează o sugestie neutră, de genul 'Această clauză merită o analiză suplimentară' sau 'Clarificarea acestor termeni este recomandată'."
 }}
 
 Text de analizat:
