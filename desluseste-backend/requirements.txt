@@ -6,3 +6,4 @@ PyMuPDF
 aiohttp
 python-dotenv
 requests
+gunicorn
