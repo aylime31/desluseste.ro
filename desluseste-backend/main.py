@@ -89,7 +89,12 @@ Text de analizat:
 \"\"\"
 """
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-    payload = { "model": "gpt-4o", "messages": [{"role": "user", "content": prompt_analiza.format(chunk=chunk)}], "response_format": {"type": "json_object"} }
+    payload = {
+        "model": "gpt-4o",
+        "messages": [{"role": "user", "content": prompt_analiza.format(chunk=chunk)}],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.1  # Forțăm modelul să fie mai determinist și să urmeze instrucțiunile la sânge
+    }
     
     log_step(f"TRIMITERE CHUNK (SYNC)...")
     try:
