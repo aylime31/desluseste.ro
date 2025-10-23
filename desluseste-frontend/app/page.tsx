@@ -35,7 +35,7 @@ export default function HomePage() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/analizeaza-pdf/', {
+      const response = await fetch('https://deslusestero-production.up.railway.app/analizeaza-pdf/', {
         method: 'POST',
         body: formData,
       });
