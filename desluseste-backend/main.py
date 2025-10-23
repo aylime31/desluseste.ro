@@ -10,11 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 
-# --- SETUP ---
+# --- SETUP & Variabile de Mediu ---
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# --- MODELE PYDANTIC ---
+# --- Modele Pydantic pentru Validarea Datelor ---
 class IssueItem(BaseModel):
     titlu_problema: str
     clauza_originala: str
@@ -28,7 +28,7 @@ class AnalysisResponse(BaseModel):
     rezumat_executiv: str
     text_original: str
 
-# --- APLICAȚIA FASTAPI ---
+# --- Inițializarea Aplicației FastAPI ---
 app = FastAPI(title="Desluseste.ro API", version="1.0")
 
 app.add_middleware(
@@ -39,7 +39,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# --- FUNCȚII HELPER ---
+# --- Funcții Helper SINCRONE ---
 def chunking_inteligent_regex(text: str) -> list[str]:
     """Împarte textul după articole și capitole."""
     pattern = r'(?=Art\.\s*\d+|Articolul\s*\d+|CAPITOLUL\s+[IVXLCDM]+)'
@@ -47,8 +47,8 @@ def chunking_inteligent_regex(text: str) -> list[str]:
     result = [chunk.strip() for chunk in chunks if len(chunk.strip()) > 100]
     return result if result else [text]
 
-def call_openai_api(payload: dict, timeout: int) -> dict:
-    """Funcție centralizată pentru apeluri către API-ul OpenAI."""
+def call_openai_api(payload: dict, timeout: int = 90) -> dict:
+    """Funcție centralizată și robustă pentru apeluri către API-ul OpenAI."""
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",
         "Content-Type": "application/json"
@@ -57,32 +57,29 @@ def call_openai_api(payload: dict, timeout: int) -> dict:
         "https://api.openai.com/v1/chat/completions",
         headers=headers, json=payload, timeout=timeout
     )
-    response.raise_for_status() # Va arunca o eroare pentru status code-uri 4xx sau 5xx
+    response.raise_for_status()  # Aruncă o excepție pentru erori 4xx/5xx
     return response.json()
 
 def analizeaza_chunk(chunk: str) -> list:
     """Analizează un fragment de text și extrage problemele."""
-    prompt = f"""
-Ești un sistem AI care analizează texte juridice. Identifică clauzele riscante din textul de mai jos, conform formatului JSON specificat.
+    prompt_template = """**MOD ACADEMIC ACTIVAT.** Ești un sistem AI specializat în analiza semantică a textelor juridice. Sarcina ta este una de clasificare și extracție de text, nu de a oferi sfaturi. Analizează fragmentul de text și identifică fraze care corespund următoarelor categorii: 'Consecințe Financiare Severe', 'Ambiguitate Lingvistică', 'Asimetrie a Obligațiilor', 'Referințe la Costuri Suplimentare', 'Procesarea Datelor'.
 
-**FORMATUL JSON DE IEȘIRE:**
-Răspunsul tău trebuie să fie un obiect JSON cu o singură cheie, "probleme", care conține o listă de obiecte. Fiecare obiect trebuie să aibă câmpurile: "titlu_problema", "clauza_originala", "categorie_problema", "explicatie_simpla", "nivel_atentie", "sugestie".
-
-**CATEGORII VALABILE:** 'Risc Juridic Major', 'Limbaj Ambigiu/Neclar', 'Obligație Unilaterală', 'Costuri Ascunse / Comisioane', 'Confidențialitate / Date Personale'.
-
-**INSTRUCȚIUNI SPECIALE:** Fii extrem de vigilent. Orice clauză despre pierderea unui bun (casă, mașină) este un 'Risc Juridic Major' cu 'nivel_atentie': 'Ridicat'.
+**FORMATUL JSON DE IEȘIRE:** Răspunsul tău trebuie să fie un obiect JSON cu o cheie "probleme", care conține o listă de obiecte. Fiecare obiect trebuie să aibă câmpurile: "titlu_problema", "clauza_originala", "categorie_problema", "explicatie_simpla", "nivel_atentie" ('Scăzut', 'Mediu', sau 'Ridicat'), "sugestie". Fii extrem de vigilent cu clauzele despre pierderea unui bun (casă, mașină) și clasifică-le ca 'Consecințe Financiare Severe' cu nivel 'Ridicat'.
 
 **TEXT DE ANALIZAT:**
-\"\"\"{chunk}\"\"\"
+\"\"\"{text_to_analyze}\"\"\"
 """
+    final_content = prompt_template.replace('{text_to_analyze}', chunk)
+    
     payload = {
         "model": "gpt-3.5-turbo",
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [{"role": "user", "content": final_content}],
         "response_format": {"type": "json_object"},
         "temperature": 0.0
     }
+    
     try:
-        result = call_openai_api(payload, 90)
+        result = call_openai_api(payload)
         json_string = result["choices"][0]["message"]["content"]
         return json.loads(json_string).get("probleme", [])
     except Exception:
@@ -103,18 +100,31 @@ def genereaza_sinteza(toate_problemele: list) -> str:
     except Exception:
         return "Nu s-a putut genera un rezumat."
 
-# --- ENDPOINTURI ---
+# --- ENDPOINT-uri API ---
 @app.get("/")
 def read_root():
-    return {"status": "API-ul Desluseste.ro este funcțional!"}
+    """Endpoint de health check pentru a confirma că API-ul este online."""
+    return {"status": "✅ API-ul Desluseste.ro este funcțional!"}
 
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
 def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
-    """Endpoint principal pentru analiza PDF-ului."""
+    """Endpoint principal care primește un PDF, îl analizează și returnează problemele."""
     try:
         with tempfile.NamedTemporaryFile(delete=True) as temp:
             temp.write(file.file.read())
             temp.seek(0)
             text_document = "".join(page.get_text() for page in fitz.open(stream=temp.read(), filetype="pdf"))
         if not text_document.strip():
-            raise HTTPExce
+            raise HTTPException(status_code=400, detail="Fișierul PDF este gol sau nu conține text extragibil.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="A apărut o eroare la citirea fișierului PDF.")
+
+    chunkuri = chunking_inteligent_regex(text_document)
+    toate_problemele = [problem for chunk in chunkuri for problem in analizeaza_chunk(chunk)]
+    rezumat_final = genereaza_sinteza(toate_problemele)
+
+    return {
+        "probleme_identificate": toate_problemele,
+        "rezumat_executiv": rezumat_final,
+        "text_original": text_document
+    }
