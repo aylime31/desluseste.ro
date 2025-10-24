@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { AnalysisResponse, IssueItem } from '../types';
-import { FileUpload } from '@/components/FileUpload'; // Asigură-te că importul este corect
+import { FileUpload } from '@/components/ui/FileUpload'; // Asigură-te că importul este corect
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
