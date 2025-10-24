@@ -1,125 +1,138 @@
-'use client';
+// app/page.tsx
+"use client";
 
-import { useState } from 'react';
-import type { ChangeEvent } from 'react';
-import Image from 'next/image'; // Importăm componenta optimizată pentru imagini
-import type { AnalysisResponse } from '../types';
-import { FileUpload } from '@/components/ui/FileUpload';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FileUpload } from "@/components/ui/FileUpload";
+import { Alert } from "@/components/ui/alert";
+import { analizeazaPdf } from "@/lib/api";
+import { normalizeAnalysis, type NormalizedAnalysisResponse } from "@/lib/schemas";
 
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { LandingHero } from "@/components/landing/LandingHero";
+import { UploadCard } from "@/components/landing/UploadCard";
+import { SkeletonCard, SkeletonText} from "@/components/analysis/Skeletons";
+
+
+
+// ————————————————————————————————————————————————
+// Page (landing → upload → analyze → dashboard)
+// ————————————————————————————————————————————————
 export default function HomePage() {
-  // --- STATE & HANDLERS (Rămân neschimbate) ---
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
+  const [result, setResult] = useState<NormalizedAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileAccepted = (file: File) => {
-    setSelectedFile(file);
-    setAnalysisResult(null);
-    setError(null);
-  };
+  // pentru focus management/a11y
+  const liveRef = useRef<HTMLDivElement | null>(null);
 
-  const handleAnalyze = async () => {
+  // acceptă fișier
+  const handleFileAccepted = useCallback((file: File) => {
+    setSelectedFile(file);
+    setResult(null);
+    setError(null);
+    // focus pe zona “live”
+    requestAnimationFrame(() => liveRef.current?.focus());
+  }, []);
+
+  // pornește analiza
+  const handleAnalyze = useCallback(async () => {
     if (!selectedFile) return;
     setIsLoading(true);
     setError(null);
-    setAnalysisResult(null);
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+    setResult(null);
     try {
-      const response = await fetch('https://desluseste-ro.onrender.com/analizeaza-pdf/', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Eroare de server (${response.status}): ${text.slice(0, 150)}`);
-      }
-      const data: AnalysisResponse = await response.json();
-      setAnalysisResult(data);
-    } catch (err: any) {
-      setError(err.message || 'A apărut o eroare la analiză.');
+      const raw = await analizeazaPdf(selectedFile);
+      const normalized = normalizeAnalysis(raw);
+      setResult(normalized);
+      // focus pe rezultate
+      requestAnimationFrame(() => liveRef.current?.focus());
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "A apărut o eroare la analiză.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedFile]);
 
-  const getAttentionColor = (level: string = 'Scăzut'): string => {
-    switch (level) {
-      case 'Ridicat': return 'bg-red-600';
-      case 'Mediu': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
-  };
-  const getCategoryBadgeVariant = (category: string = ''): "destructive" | "secondary" | "outline" | "default" => {
-    if (category.includes('Severe') || category.includes('Financiare')) return 'destructive';
-    if (category.includes('Date')) return 'secondary';
-    return 'default';
-  };
+  // reset flow
+  const handleReset = useCallback(() => {
+    setResult(null);
+    setSelectedFile(null);
+    setError(null);
+    // curățăm hash-ul dacă era setat
+    try {
+      if (window.location.hash) history.replaceState(null, "", window.location.pathname);
+    } catch {}
+  }, []);
 
-  // --- JSX (NOUA INTERFAȚĂ VIZUALĂ) ---
+  // deep-link: dacă există #ancoră la intrarea pe pagină și avem deja rezultate (ex: refresh pe dashboard),
+  // AnalysisDashboard va face scroll. Aici doar păstrăm hash-ul neatins.
+
+  if (result) {
+    const AnalysisDashboard = require("./components/analysis/AnalysisDashboard").AnalysisDashboard;
+    return <AnalysisDashboard result={result} onReset={handleReset} />;
+  }
+
   return (
-    <div className="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
-      {/* ===== HEADER NOU ===== */}
-      <header className="w-full max-w-6xl mx-auto p-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Desluseste.ro Logo" width={40} height={40} />
-          <span className="font-semibold text-xl">Deslușește.ro</span>
-        </div>
-        <div className="flex items-center gap-2 border border-slate-700 rounded-full p-1">
-            <Button variant="secondary" size="sm" className="rounded-full bg-slate-700">Romanian</Button>
-            <Button variant="ghost" size="sm" className="rounded-full">English</Button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-app">
+      <SiteHeader />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <LandingHero />
 
-      {/* ===== CONȚINUT PRINCIPAL ===== */}
-      <main className="flex-grow flex flex-col items-center justify-center p-4 text-center">
-        <div className="w-full max-w-3xl space-y-8">
+        {/* zonă pentru focus-management / anunțare rezultate */}
+        <div
+          ref={liveRef as any}
+          tabIndex={-1}
+          aria-live="polite"
+          className="outline-none"
+        />
 
-          {/* Afișare condiționată: ori upload, ori eroare, ori rezultate */}
-          
-          {error && (
-            <div className="animate-fade-in text-center">
-              <Alert variant="destructive">{/* ... codul pentru eroare ... */}</Alert>
-              <Button onClick={() => window.location.reload()} className="mt-4">Încearcă din nou</Button>
+        <UploadCard
+          selectedFile={selectedFile}
+          isLoading={isLoading}
+          onAnalyze={handleAnalyze}
+          onClear={handleReset}
+          Upload={({ disabled }) => (
+            <FileUpload onFileAccepted={handleFileAccepted} disabled={!!disabled} />
+          )}
+        />
+
+        {error && (
+          <Alert variant="destructive" className="mt-6 bg-red-900/20 border-red-800/50 text-red-200">
+            {error}
+          </Alert>
+        )}
+
+        {/* beneficii scurte */}
+        <section className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="card-tight text-center">
+            <h3 className="text-lg font-semibold mb-1">Rapid</h3>
+            <p className="text-sm text-muted">Rezultate în câteva secunde cu AI.</p>
+          </div>
+          <div className="card-tight text-center">
+            <h3 className="text-lg font-semibold mb-1">Limbaj simplu</h3>
+            <p className="text-sm text-muted">Clauze explicate fără jargon.</p>
+          </div>
+          <div className="card-tight text-center">
+            <h3 className="text-lg font-semibold mb-1">Confidențial</h3>
+            <p className="text-sm text-muted">Procesare sigură, în română.</p>
+          </div>
+        </section>
+
+        {/* skeletons vizibile doar în starea de încărcare */}
+        {isLoading && (
+          <section className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <SkeletonCard />
+            <div className="lg:col-span-2 card-tight">
+              <div className="h-4 w-40 bg-slate-700/50 rounded mb-4" />
+              <SkeletonText lines={8} />
             </div>
-          )}
-
-          {analysisResult && (
-            <div className="animate-fade-in space-y-6 text-left">{/* ... codul pentru afișarea rezultatelor (neschimbat) ... */}</div>
-          )}
-
-          {/* Secțiunea de Upload - afișată doar la început */}
-          {!analysisResult && !error && (
-            <div className="text-center space-y-6 animate-fade-in">
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                Transformăm <span className="text-yellow-400">contracte complexe</span><br /> în limbaj simplu.
-              </h1>
-              <p className="mt-4 text-lg text-slate-300 max-w-2xl mx-auto">
-                Încarcă documentul tău legal pentru a obține o analiză clară a clauzelor, a obligațiilor și a potențialelor riscuri.
-              </p>
-              <div className="w-full max-w-lg mx-auto pt-4 space-y-4">
-                <FileUpload onFileAccepted={handleFileAccepted} disabled={isLoading} />
-                {selectedFile && !isLoading && (
-                  <p className="text-sm text-slate-400">Fișier selectat: <span className="font-medium text-slate-200">{selectedFile.name}</span></p>
-                )}
-                <Button onClick={handleAnalyze} disabled={!selectedFile || isLoading} size="lg" className="w-full text-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
-                  {isLoading ? 'Se analizează...' : 'Analizează Documentul'}
-                </Button>
-              </div>
-            </div>
-          )}
-
-        </div>
+          </section>
+        )}
       </main>
-
-       {/* ===== FOOTER NOU ===== */}
-      <footer className="w-full text-center p-4 text-slate-500 text-sm">
-        <p>© {new Date().getFullYear()} Desluseste.ro. Construit cu pasiune.</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
