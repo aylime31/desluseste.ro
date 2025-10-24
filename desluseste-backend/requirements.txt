@@ -7,3 +7,5 @@ aiohttp
 python-dotenv
 requests
 gunicorn
+pytesseract
+Pillow

@@ -9,6 +9,9 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
+import pytesseract
+from PIL import Image
+
 
 # --- SETUP & Variabile de Mediu ---
 load_dotenv()
@@ -130,17 +133,56 @@ def read_root():
 
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
 def analizeaza_pdf_endpoint(file: UploadFile = File(...)):
-    """Endpoint principal care primește un PDF, îl analizează și returnează problemele."""
+    """
+    Endpoint principal care primește un PDF, încearcă extragerea digitală,
+    folosește OCR ca fallback, și apoi analizează textul rezultat.
+    """
+    temp_path = None
     try:
-        with tempfile.NamedTemporaryFile(delete=True) as temp:
+        # Salvăm fișierul într-un fișier temporar persistent (delete=False)
+        # pentru a-l putea accesa de mai multe ori.
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
             temp.write(file.file.read())
-            temp.seek(0)
-            text_document = "".join(page.get_text() for page in fitz.open(stream=temp.read(), filetype="pdf"))
-        if not text_document.strip():
-            raise HTTPException(status_code=400, detail="Fișierul PDF este gol sau nu conține text extragibil.")
-    except Exception:
-        raise HTTPException(status_code=500, detail="A apărut o eroare la citirea fișierului PDF.")
+            temp_path = temp.name
 
+        text_document = ""
+        # PASUL 1: Încercarea de extragere a textului digital
+        with fitz.open(temp_path) as doc:
+            for page in doc:
+                text_document += page.get_text()
+
+        # PASUL 2: Verificarea textului și activarea modului OCR ca fallback
+        # Considerăm textul insuficient dacă are mai puțin de 100 de caractere non-spațiu.
+        if len(text_document.strip()) < 100:
+            print("\n--- [INFO] Text digital insuficient, se activează modul OCR. ---\n")
+            text_document = ""  # Resetăm variabila pentru a colecta textul OCR
+            
+            with fitz.open(temp_path) as doc:
+                for i, page in enumerate(doc):
+                    # Renderăm pagina ca imagine cu rezoluție mare pentru acuratețe
+                    pix = page.get_pixmap(dpi=300)
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    
+                    # Folosim pytesseract pentru a extrage textul în limba română
+                    page_text = pytesseract.image_to_string(img, lang='ron')
+                    text_document += page_text + "\n"
+                    print(f"\n--- [DEBUG] OCR Pagina {i+1} extrasă. ---\n")
+
+        if not text_document.strip():
+            raise HTTPException(status_code=400, detail="Fișierul PDF este gol sau complet ilizibil, chiar și după încercarea OCR.")
+
+    except Exception as e:
+        # Ne asigurăm că ștergem fișierul temporar chiar dacă apare o eroare
+        raise HTTPException(status_code=500, detail=f"A apărut o eroare la procesarea PDF: {str(e)}")
+    finally:
+        # Curățenia finală a fișierului temporar
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+    # --- De aici, codul continuă exact ca înainte ---
+    # Logica de analiză nu trebuie să știe cum a fost extras textul,
+    # ci doar să îl primească și să îl proceseze.
+    
     chunkuri = chunking_inteligent_regex(text_document)
     toate_problemele = [problem for chunk in chunkuri for problem in analizeaza_chunk(chunk)]
     rezumat_final = genereaza_sinteza(toate_problemele)
