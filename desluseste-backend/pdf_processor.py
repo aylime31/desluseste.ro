@@ -1,6 +1,5 @@
 import fitz
 from PIL import Image
-import pytesseract
 from openai_client import ocr_pagina_cu_gpt4o
 
 def extract_text_from_pdf(path: str) -> str:

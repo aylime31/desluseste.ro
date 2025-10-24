@@ -23,7 +23,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     """Endpoint de health check pentru a confirma că API-ul este online."""
-    return {"status": "✅ API-ul Desluseste.ro este funcțional!"}
+    return {"status": "API-ul Desluseste.ro este funcțional!"}
 
 
 @app.post("/analizeaza-pdf/", response_model=AnalysisResponse)
