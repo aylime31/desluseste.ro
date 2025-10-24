@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RiskHeatmap } from "@/components/analysis/RiskHeatmap";
+import { RiskHeatmap } from "./RiskHeatMap";
 import { ExecutiveSummary } from "./ExecutiveSummary";
 import { ProblemsPane } from "./ProblemsPane";
 import { DocumentPane } from "./DocumentPane";
