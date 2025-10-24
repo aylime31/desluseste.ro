@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Paletă + tokens simple */
+:root {
+  --brand-from:  #6366f1; /* indigo-500 */
+  --brand-to:    #a855f7; /* purple-500 */
+}
+
+/* Background aplicație */
+.bg-app {
+  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950;
+}
+
+/* Carduri consistente */
+.card {
+  @apply bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl;
+}
+.card-tight {
+  @apply bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-4 sm:p-6;
+}
+
+/* Buton gradient brand */
+.btn-gradient {
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white;
+}
+
+/* Text secundar */
+.text-muted { @apply text-slate-400; }
+
+/* Focus ring uniform */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+}
+
+/* Highlight după risc (folosit în HighlightedText) */
+mark[data-risk="ridicat"] { @apply bg-red-500/30 text-red-100 rounded px-0.5; }
+mark[data-risk="mediu"]   { @apply bg-amber-500/30 text-amber-100 rounded px-0.5; }
+mark[data-risk="scazut"]  { @apply bg-emerald-500/20 text-emerald-100 rounded px-0.5; }
+
+/* Scrollbar decent */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgb(51 65 85); border-radius: 9999px; }
+* { scrollbar-color: rgb(51 65 85) transparent; scrollbar-width: thin; }
+
+/* Tipografie de bază pe pagină */
+html, body { @apply h-full; }
+body { @apply text-slate-100 antialiased; }

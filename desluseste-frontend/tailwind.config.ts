@@ -1,14 +1,22 @@
-import type { Config } from 'tailwindcss'
+// tailwind.config.ts
+import type { Config } from "tailwindcss";
 
-const config: Config = {
+export default {
+  darkMode: ["class"],
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./app/**/*.{ts,tsx,js,jsx,mdx}",
+    "./components/**/*.{ts,tsx,js,jsx,mdx}",
+    "./lib/**/*.{ts,tsx,js,jsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "0 10px 25px -10px rgba(0,0,0,0.45)",
+      },
+    },
   },
   plugins: [],
-}
-export default config
+} satisfies Config;
