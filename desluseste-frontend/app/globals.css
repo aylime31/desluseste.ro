@@ -8,12 +8,13 @@
   --brand-to:    #a855f7; /* purple-500 */
 }
 
-/* Background aplicație */
+/* Background aplicație — CSS pur, fără from/via/to în @apply */
 .bg-app {
-  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950;
+  /* echivalentul: bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 */
+  background-image: linear-gradient(135deg, #020617 0%, #0f172a 50%, #020617 100%);
 }
 
-/* Carduri consistente */
+/* Carduri */
 .card {
   @apply bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl;
 }
@@ -21,9 +22,13 @@
   @apply bg-slate-900/50 backdrop-blur border border-slate-800 rounded-2xl p-4 sm:p-6;
 }
 
-/* Buton gradient brand */
+/* Buton gradient — CSS pur (fără from/to în @apply) */
 .btn-gradient {
-  @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white;
+  color: white;
+  background-image: linear-gradient(to right, #4f46e5, #7c3aed);   /* indigo-600 → purple-600 */
+}
+.btn-gradient:hover {
+  background-image: linear-gradient(to right, #4338ca, #6d28d9);   /* indigo-700 → purple-700 */
 }
 
 /* Text secundar */
