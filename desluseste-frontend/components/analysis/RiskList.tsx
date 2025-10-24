@@ -3,14 +3,30 @@ import * as React from "react";
 import type { IssueItem } from "@/lib/schemas";
 import { AlertTriangle, Info, AlertCircle } from "lucide-react";
 
+type Nivel = "Scăzut" | "Mediu" | "Ridicat";
+
 type Props = {
   probleme: IssueItem[];
   onSelect: (idx: number) => void;
-  /** indexul activ din panoul de document (opțional, pt. stilizare/aria) */
   activeIndex?: number | null;
-  /** callback opțional pt. a declanșa scroll către ancora din textul original */
   onSelectById?: (anchorId: string, idx: number) => void;
 };
+
+const norm = (s: string) =>
+  s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+
+function toNivel(anyNivel: string | number | undefined): Nivel {
+  if (typeof anyNivel === "number") {
+    const n = Math.max(0, Math.min(100, anyNivel));
+    if (n >= 70) return "Ridicat";
+    if (n >= 40) return "Mediu";
+    return "Scăzut";
+  }
+  const t = norm(String(anyNivel || ""));
+  if (/ridicat|high|mare|inalt/.test(t)) return "Ridicat";
+  if (/mediu|medium|mijlociu/.test(t)) return "Mediu";
+  return "Scăzut";
+}
 
 export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById }: Props) {
   const listRef = React.useRef<HTMLDivElement | null>(null);
@@ -19,18 +35,18 @@ export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById 
     return s
       .toLowerCase()
       .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "") // diacritice → out
+      .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
   }, []);
 
-  const getRiskIcon = (nivel: string) => {
+  const getRiskIcon = (nivel: Nivel) => {
     if (nivel === "Ridicat") return <AlertTriangle className="w-4 h-4 text-red-400" aria-hidden />;
     if (nivel === "Mediu")   return <AlertCircle   className="w-4 h-4 text-amber-400" aria-hidden />;
     return <Info className="w-4 h-4 text-emerald-400" aria-hidden />;
   };
 
-  const getRiskColor = (nivel: string) => {
+  const getRiskColor = (nivel: Nivel) => {
     if (nivel === "Ridicat") return "border-red-500/30 hover:border-red-500/50 hover:bg-red-500/5";
     if (nivel === "Mediu")   return "border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-500/5";
     return "border-emerald-500/30 hover:border-emerald-500/50 hover:bg-emerald-500/5";
@@ -49,7 +65,6 @@ export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById 
 
   const handleActivate = React.useCallback((i: number, anchorId: string) => {
     onSelect(i);
-    // URL hash pt. deep-link/share (nu rupe navigarea Next)
     try { history.replaceState(null, "", `#${anchorId}`); } catch {}
     onSelectById?.(anchorId, i);
   }, [onSelect, onSelectById]);
@@ -71,9 +86,11 @@ export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById 
       className="space-y-3"
     >
       {probleme.map((p, i) => {
-        const anchorId = p.anchor_id || `${slugify(p.titlu_problema || `problema-${i}`)}-${i}`;
+        const level: Nivel = toNivel(p.nivel_atentie as any);
+        const anchorId = p.anchor_id && p.anchor_id.trim().length
+          ? p.anchor_id
+          : `${slugify(p.titlu_problema || `problema-${i}`)}-${i}`;
         const isActive = activeIndex === i;
-        const level = p.nivel_atentie || "Scăzut";
 
         return (
           <button
@@ -88,19 +105,6 @@ export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById 
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 handleActivate(i, anchorId);
-              }
-              // navigație rapidă cu săgeți
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                const next = Math.min(i + 1, probleme.length - 1);
-                const nextBtn = listRef.current?.querySelectorAll<HTMLButtonElement>("button[role='option']")[next];
-                nextBtn?.focus();
-              }
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                const prev = Math.max(i - 1, 0);
-                const prevBtn = listRef.current?.querySelectorAll<HTMLButtonElement>("button[role='option']")[prev];
-                prevBtn?.focus();
               }
             }}
             className={[
@@ -125,7 +129,6 @@ export function RiskList({ probleme, onSelect, activeIndex = null, onSelectById 
               <span className="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-400">
                 Nivel: {level}
               </span>
-              {/* ancoră vizibilă doar pentru screenreaders */}
               <span id={anchorId} className="sr-only">Ancoră {i + 1}</span>
             </div>
 
