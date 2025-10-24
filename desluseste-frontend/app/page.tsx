@@ -1,7 +1,7 @@
-// app/page.tsx
+
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Alert } from "@/components/ui/alert";
 import { analizeazaPdf } from "@/lib/api";
@@ -12,27 +12,29 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { LandingHero } from "@/components/landing/LandingHero";
 import { UploadCard } from "@/components/landing/UploadCard";
 import { SkeletonCard, SkeletonText} from "@/components/analysis/Skeletons";
+import dynamic from "next/dynamic";
 
-
+// Lazy load pentru dashboard (se încarcă doar după analiză)
+const AnalysisDashboard = dynamic(
+  () => import("@/components/analysis/AnalysisDashboard").then(m => m.AnalysisDashboard),
+  { ssr: false }
+);
 
 // ————————————————————————————————————————————————
-// Page (landing → upload → analyze → dashboard)
+// Pagina principală (landing → upload → analyze → dashboard)
 // ————————————————————————————————————————————————
 export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<NormalizedAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // pentru focus management/a11y
-  const liveRef = useRef<HTMLDivElement | null>(null);
+  const liveRef = useRef<HTMLDivElement | null>(null); // pentru focus management / a11y
 
   // acceptă fișier
   const handleFileAccepted = useCallback((file: File) => {
     setSelectedFile(file);
     setResult(null);
     setError(null);
-    // focus pe zona “live”
     requestAnimationFrame(() => liveRef.current?.focus());
   }, []);
 
@@ -42,11 +44,11 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
     setResult(null);
+
     try {
       const raw = await analizeazaPdf(selectedFile);
       const normalized = normalizeAnalysis(raw);
       setResult(normalized);
-      // focus pe rezultate
       requestAnimationFrame(() => liveRef.current?.focus());
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "A apărut o eroare la analiză.";
@@ -61,33 +63,25 @@ export default function HomePage() {
     setResult(null);
     setSelectedFile(null);
     setError(null);
-    // curățăm hash-ul dacă era setat
     try {
       if (window.location.hash) history.replaceState(null, "", window.location.pathname);
     } catch {}
   }, []);
 
-  // deep-link: dacă există #ancoră la intrarea pe pagină și avem deja rezultate (ex: refresh pe dashboard),
-  // AnalysisDashboard va face scroll. Aici doar păstrăm hash-ul neatins.
-
+  // dacă avem rezultat, randăm dashboard-ul
   if (result) {
-    const AnalysisDashboard = require("./components/analysis/AnalysisDashboard").AnalysisDashboard;
     return <AnalysisDashboard result={result} onReset={handleReset} />;
   }
 
+  // landing page
   return (
     <div className="min-h-screen bg-app">
       <SiteHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <LandingHero />
 
-        {/* zonă pentru focus-management / anunțare rezultate */}
-        <div
-          ref={liveRef as any}
-          tabIndex={-1}
-          aria-live="polite"
-          className="outline-none"
-        />
+        {/* Zonă pentru focus-management / anunțare rezultate */}
+        <div ref={liveRef} tabIndex={-1} aria-live="polite" className="outline-none" />
 
         <UploadCard
           selectedFile={selectedFile}
@@ -95,17 +89,20 @@ export default function HomePage() {
           onAnalyze={handleAnalyze}
           onClear={handleReset}
           Upload={({ disabled }) => (
-            <FileUpload onFileAccepted={handleFileAccepted} disabled={!!disabled} />
+            <FileUpload onFileAccepted={handleFileAccepted} disabled={disabled} />
           )}
         />
 
         {error && (
-          <Alert variant="destructive" className="mt-6 bg-red-900/20 border-red-800/50 text-red-200">
+          <Alert
+            variant="destructive"
+            className="mt-6 bg-red-900/20 border-red-800/50 text-red-200"
+          >
             {error}
           </Alert>
         )}
 
-        {/* beneficii scurte */}
+        {/* Beneficii scurte */}
         <section className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-tight text-center">
             <h3 className="text-lg font-semibold mb-1">Rapid</h3>
@@ -121,7 +118,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* skeletons vizibile doar în starea de încărcare */}
+        {/* Skeletons (vizibile doar în timpul încărcării) */}
         {isLoading && (
           <section className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <SkeletonCard />

@@ -1,8 +1,13 @@
 "use client";
+
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 
+/**
+ * Cardul care gestionează uploadul, afișarea fișierului și butoanele de analiză.
+ * Primește un render-prop `Upload` care creează efectiv zona de încărcare.
+ */
 export function UploadCard({
   selectedFile,
   isLoading,
@@ -14,15 +19,20 @@ export function UploadCard({
   isLoading: boolean;
   onAnalyze: () => void;
   onClear: () => void;
-  Upload: React.FC<{ disabled?: boolean }>;
+  Upload: (props: { disabled: boolean }) => React.ReactNode;
 }) {
   const titleId = useId();
+
   return (
     <section aria-labelledby={titleId} className="card rounded-3xl p-6 sm:p-8">
-      <h2 id={titleId} className="sr-only">Încarcă document</h2>
+      <h2 id={titleId} className="sr-only">
+        Încarcă document
+      </h2>
 
-      <Upload disabled={isLoading} />
+      {/* zona de upload */}
+      {Upload({ disabled: isLoading })}
 
+      {/* fișier selectat */}
       {selectedFile && (
         <div className="mt-6 p-4 bg-slate-800/50 rounded-xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -30,11 +40,16 @@ export function UploadCard({
               <FileText className="w-5 h-5 text-indigo-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-              <p className="text-xs text-muted">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+              <p className="text-sm font-medium truncate text-slate-200">
+                {selectedFile.name}
+              </p>
+              <p className="text-xs text-slate-400">
+                {(selectedFile.size / 1024).toFixed(1)} KB
+              </p>
             </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex gap-2 shrink-0">
             <Button
               onClick={onAnalyze}
               disabled={isLoading}
@@ -42,14 +57,20 @@ export function UploadCard({
             >
               {isLoading ? "Se procesează…" : "Analizează"}
             </Button>
-            <Button onClick={onClear} variant="ghost" className="text-slate-300 hover:bg-slate-800 focus-ring">
+            <Button
+              onClick={onClear}
+              variant="ghost"
+              className="text-slate-300 hover:bg-slate-800 focus-ring"
+            >
               Anulează
             </Button>
           </div>
         </div>
       )}
+
       <p className="mt-3 text-xs text-muted">
-        Sfat: poți {`Ctrl+V`} un PDF din clipboard sau trage fișierul în zonă.
+        Sfat: poți <kbd className="px-1 bg-slate-800/60 rounded">Ctrl+V</kbd>{" "}
+        un PDF din clipboard sau trage fișierul în zonă.
       </p>
     </section>
   );
