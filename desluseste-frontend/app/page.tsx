@@ -35,7 +35,7 @@ export default function HomePage() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('https://desluseste-ro.onrender.com/analizeaza-pdf/', {
+      const response = await fetch('https://desluseste-docker.onrender.com/analizeaza-pdf/', {
         method: 'POST',
         body: formData,
       });
