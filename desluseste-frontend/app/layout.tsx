@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Folosim Inter, fontul standard Next.js, pentru a elimina orice eroare de font
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,9 +16,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ro">
-      {/* Aplicăm un fundal negru și text alb direct cu clase Tailwind de bază */}
-      <body className={`${inter.className} bg-black text-white`}>
-        {children}
+      <body className={`${inter.className} bg-[#f7f9fc] text-slate-800`}>
+        <header className="w-full py-6 flex justify-center border-b border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center space-x-3">
+            <img
+              src="/logo.png"
+              alt="Deslușește.ro logo"
+              className="h-14 w-auto"
+            />
+          </div>
+        </header>
+        <main className="flex justify-center items-center min-h-[80vh] p-4">
+          {children}
+        </main>
+        <footer className="text-center py-6 text-sm text-slate-500 border-t border-slate-200 bg-white">
+          © 2025 deslușește.ro — Analizăm clar și pe înțelesul tău
+        </footer>
       </body>
     </html>
   );
