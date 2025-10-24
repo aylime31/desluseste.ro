@@ -17,6 +17,29 @@ def call_openai_api(payload: dict, timeout: int = 90) -> dict:
     response.raise_for_status()
     return response.json()
 
+def ocr_pagina_cu_gpt4o(imagine: Image.Image) -> str:
+    """Trimite o imagine la GPT-4o și returnează textul extras (OCR)."""
+    buffer = io.BytesIO()
+    imagine.save(buffer, format="PNG")
+    imagine_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+    payload = {
+        "model": "gpt-4o",
+        "messages": [
+            {"role": "user", "content": [
+                {"type": "text", "text": "Ești un sistem OCR de înaltă precizie. Extrage tot textul din această imagine, în limba română. Nu adăuga niciun comentariu, doar textul brut extras."},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{imagine_b64}"}}
+            ]}
+        ],
+        "max_tokens": 4000
+    }
+    try:
+        print("--- [INFO] Se trimite imaginea la GPT-4o pentru OCR... ---")
+        result = call_openai_api(payload)
+        return result["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"--- [EROARE] OCR cu GPT-4o a eșuat: {e} ---")
+        return ""
 
 def analizeaza_chunk(chunk: str) -> List[dict]:
     """Analizează un fragment de text și extrage problemele.

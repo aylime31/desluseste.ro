@@ -1,7 +1,7 @@
 import fitz
 from PIL import Image
 import pytesseract
-
+from openai_client import ocr_pagina_cu_gpt4o
 
 def extract_text_from_pdf(path: str) -> str:
     """Încearcă extragerea digitală; dacă e insuficient, folosește OCR ca fallback."""
@@ -16,8 +16,9 @@ def extract_text_from_pdf(path: str) -> str:
         text_document = ""
         with fitz.open(path) as doc:
             for i, page in enumerate(doc):
-                pix = page.get_pixmap(dpi=300)
+                pix = page.get_pixmap(dpi=200)
                 img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                page_text = pytesseract.image_to_string(img, lang='ron')
+                page_text = ocr_pagina_cu_gpt4o(img)
                 text_document += page_text + "\n"
+                print(f"--- [INFO] OCR cu GPT-4o Pagina {i+1} procesată. ---")
     return text_document
