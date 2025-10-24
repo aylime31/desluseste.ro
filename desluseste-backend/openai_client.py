@@ -2,7 +2,7 @@ import json
 import requests
 from typing import List
 from config import OPENAI_API_KEY
-
+from PIL import Image
 
 def call_openai_api(payload: dict, timeout: int = 90) -> dict:
     """Funcție centralizată și robustă pentru apeluri către API-ul OpenAI."""
