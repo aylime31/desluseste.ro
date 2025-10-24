@@ -2,54 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Tokens simple ===== */
+/* —— Tokens simple —— */
 :root{
   --brand-from:#6366f1; /* indigo-500 */
   --brand-to:#a855f7;   /* purple-500 */
-  --slate-900-50: rgba(15,23,42,0.5);   /* bg-slate-900/50 */
-  --red-500-30:   rgba(239,68,68,0.30); /* bg-red-500/30 */
-  --amber-500-30: rgba(245,158,11,0.30);/* bg-amber-500/30 */
-  --emerald-500-20: rgba(16,185,129,0.20); /* bg-emerald-500/20 */
+
+  --slate-800: #1f2937;
+  --slate-900: #0f172a;
+  --slate-900-50: rgba(15,23,42,0.5);
+  --ring-indigo: #6366f1;
 }
 
-/* ===== Background aplicație (CSS pur pentru gradient) ===== */
+/* —— Background aplicație (fără @apply) —— */
 .bg-app{
   background-image: linear-gradient(135deg,#020617 0%,#0f172a 50%,#020617 100%);
+  min-height: 100vh;
 }
 
-/* ===== Carduri ===== */
+/* —— Carduri —— */
 .card{
   background-color: var(--slate-900-50);
-  @apply backdrop-blur border border-slate-800 rounded-2xl;
+  border: 1px solid #1e293b;          /* slate-800 */
+  border-radius: 1rem;                 /* ~ rounded-2xl */
+  backdrop-filter: blur(8px);
 }
 .card-tight{
   background-color: var(--slate-900-50);
-  @apply backdrop-blur border border-slate-800 rounded-2xl p-4 sm:p-6;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  padding: 1rem;                       /* p-4 */
 }
+@media (min-width: 640px){ .card-tight{ padding: 1.5rem; } } /* sm:p-6 */
 
-/* ===== Buton gradient (fără from/to în @apply) ===== */
+/* —— Buton gradient —— */
 .btn-gradient{
   color:#fff;
-  background-image: linear-gradient(to right,#4f46e5,#7c3aed);
+  background-image: linear-gradient(to right,#4f46e5,#7c3aed); /* indigo-600 → purple-600 */
+  border-radius: .5rem;
+  padding-left: 1.5rem; padding-right: 1.5rem;
 }
 .btn-gradient:hover{
-  background-image: linear-gradient(to right,#4338ca,#6d28d9);
+  background-image: linear-gradient(to right,#4338ca,#6d28d9); /* indigo-700 → purple-700 */
 }
 
-/* ===== Text secundar & focus ring ===== */
-.text-muted{@apply text-slate-400;}
-.focus-ring{@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;}
+/* —— Text secundar —— */
+.text-muted{ color: rgb(148 163 184); } /* slate-400 */
 
-/* ===== Highlight după risc (fără / în @apply) ===== */
-mark[data-risk="ridicat"]{background-color:var(--red-500-30); @apply text-red-100 rounded px-0.5;}
-mark[data-risk="mediu"]  {background-color:var(--amber-500-30); @apply text-amber-100 rounded px-0.5;}
-mark[data-risk="scazut"] {background-color:var(--emerald-500-20); @apply text-emerald-100 rounded px-0.5;}
+/* —— Focus ring coerent —— */
+.focus-ring:focus-visible{
+  outline: 2px solid var(--ring-indigo);
+  outline-offset: 2px;
+}
 
-/* ===== Scrollbar ===== */
-*::-webkit-scrollbar{width:10px;height:10px;}
-*::-webkit-scrollbar-thumb{background:rgb(51 65 85);border-radius:9999px;}
-*{scrollbar-color:rgb(51 65 85) transparent;scrollbar-width:thin;}
+/* —— Highlight după risc —— */
+mark[data-risk="ridicat"] { background-color: rgba(239,68,68,.30); color: #ffe4e6; border-radius: .25rem; padding: 0 .125rem; }
+mark[data-risk="mediu"]   { background-color: rgba(245,158,11,.30); color: #fffbeb; border-radius: .25rem; padding: 0 .125rem; }
+mark[data-risk="scazut"]  { background-color: rgba(16,185,129,.20); color: #ecfdf5; border-radius: .25rem; padding: 0 .125rem; }
 
-/* ===== Tipografie de bază ===== */
-html,body{@apply h-full;}
-body{@apply text-slate-100 antialiased;}
+/* —— Scrollbar —— */
+*::-webkit-scrollbar{ width:10px; height:10px; }
+*::-webkit-scrollbar-thumb{ background:#334155; border-radius:9999px; }
+*{ scrollbar-color:#334155 transparent; scrollbar-width:thin; }
+
+/* —— Tipografie de bază —— */
+html,body{ height:100%; }
+body{ color: #e2e8f0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
