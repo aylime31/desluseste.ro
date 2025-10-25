@@ -74,22 +74,91 @@ body{
 }
 
 /* ========= CARD (Adobe-like) ========= */
+/* Header */
+.hero-blue{
+  background: #1e90a6;             /* o nuanță mai modernă de albastru-verde */
+  color:#fff;
+  height:80px;
+  display:flex;
+  align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.header-container{
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+}
+.site-logo{
+  height:auto;
+  width:auto;
+  max-height:44px;                 /* ca să nu fie turtit */
+}
+
+/* CONTAINER principal: pe coloană ca să vină bara SUB card */
+.upload-wrap{
+  min-height:calc(100vh - 80px);
+  display:flex;
+  flex-direction:column;           /* <- important */
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  gap:24px;                        /* spațiu între card și bară */
+  width:100%;
+}
+
+/* Card alb */
 .dz2-card{
   position:relative;
-  width:100%;
-  max-width:920px;
-  min-height:360px;
   background:#fff;
   border-radius:22px;
-  border:2px dashed var(--g-200);
-  padding:54px 64px;
+  border:2px dashed var(--gray-200);
+  padding:48px 64px;
+  width:100%;
+  max-width:1100px;
+  min-height:360px;
   box-shadow:var(--shadow-lg);
   display:grid;
   grid-template-columns:1fr 240px;
   gap:32px;
   cursor:pointer;
-  transition:border-color .2s ease, box-shadow .2s ease, transform .02s ease, background .2s ease;
 }
+@media (max-width: 860px){
+  .dz2-card{ grid-template-columns:1fr; text-align:center; }
+  .dz2-right{ display:none; }
+}
+
+/* Bara FIȘIER – SUB card, centrată */
+.file-bar-container{
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+.file-bar{
+  background:#fff;
+  border:1px solid var(--gray-200);
+  border-radius:16px;
+  padding:14px 18px;
+  box-shadow:0 10px 20px rgba(2,6,23,.04);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  width:100%;
+  max-width:860px;
+  font-family:"Comfortaa", sans-serif;
+  flex-wrap:wrap;                  /* previne suprapunerea pe ecrane mici */
+}
+
+.file-info{ display:flex; align-items:center; gap:10px; }
+.file-icon{ font-size:20px; }
+.file-name{ font-weight:700; color:var(--ink-900); }
+.file-size{ font-size:13px; color:var(--ink-600); }
+
+.btn-primary,.btn-ghost{ font-family:"Comfortaa", sans-serif; }
+
 .dz2-card:hover{
   border-color:var(--blue-600);
   box-shadow:0 22px 44px rgba(37,99,235,.15);
