@@ -238,14 +238,14 @@ DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOU
 **FORMATUL JSON DE IEȘIRE (obligatoriu):**
 Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă formatul cerut. Obiectul principal trebuie să conțină o cheie "probleme", care este o listă de obiecte JSON. Dacă nu găsești nimic, returnează o listă goală.
 
-**JSON FORMAT EXAMPLE (You need to give values to the keys, preferably unique to each individual clause):**
+**FORMATUL FIECĂRUI OBIECT DIN LISTĂ:**
 {{
-  "titlu_problema": "Limitarea răspunderii",
-  "clauza_originala": "Nu ne asumăm nicio răspundere pentru pierderile indirecte sau consecințiale.",
-  "categorie_problema": "Limitare de răspundere",
-  "explicatie_simpla": "Această clauză limitează responsabilitatea companiei pentru daunele indirecte, ceea ce poate fi problematic pentru utilizatori.",
-  "nivel_atentie": "Ridicat",
-  "sugestie": "Cere o clarificare asupra modului în care compania definește 'pierderile indirecte' și 'consecințele'."
+  "titlu_problema": "Creează un titlu neutru, descriptiv pentru fragment (ex: 'Clauză de Executare a Garanției').",
+  "clauza_originala": "Textul exact al fragmentului etichetat.",
+  "categorie_problema": "Alege eticheta corespunzătoare: 'Consecințe Financiare Severe', 'Ambiguitate Lingvistică', 'Asimetrie a Obligațiilor', 'Referințe la Costuri Suplimentare', 'Procesarea Datelor'.",
+  "explicatie_simpla": "Descrie obiectiv ce înseamnă acest fragment de text, fără a oferi sfaturi.",
+  "nivel_atentie": "Pe baza severității descrise, atribuie un nivel de atenție: 'Scăzut', 'Mediu', 'Ridicat'.",
+  "sugestie": "Formulează o sugestie neutră, de genul 'Această clauză merită o analiză suplimentară' sau 'Clarificarea acestor termeni este recomandată'."
 }}
 
 **TEXT DE ANALIZAT:**
