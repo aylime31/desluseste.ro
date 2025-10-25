@@ -466,7 +466,7 @@ Am înțeles corect comparația? (greater/lesser/between)
 Am verificat ambele scenarii? (când X e mai mare, când Y e mai mare)
 Explicația mea reflectă logica matematică corectă?
 Remember: Companies have lawyers. Now users have you. Be worthy of that trust.
-DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF, AWARE OF THE ROMANIAN LAW.
+DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF, AWARE OF THE ROMANIAN LAW. DO NOT JUST REFER THEM TO A LAWYER OR TELL THEM TO VERIFY.
 Scrie un rezumat executiv în română, de 3-4 propoziții, pentru următoarele probleme identificate într-un contract, subliniind cele mai grave: {context}
 """
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}], "temperature": 0.5}
