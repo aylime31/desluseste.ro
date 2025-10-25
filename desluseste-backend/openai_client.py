@@ -249,8 +249,6 @@ Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă forma
   "sugestie": "Formulează o sugestie neutră, de genul 'Această clauză merită o analiză suplimentară' sau 'Clarificarea acestor termeni este recomandată'."
 }}
 
-**INSTRUCȚIUNI SPECIALE:** Fii extrem de vigilent cu clauzele despre pierderea unui bun (casă, mașină) și clasifică-le ca 'Consecințe Financiare Severe' cu nivel 'Ridicat'.
-
 **TEXT DE ANALIZAT:**
 <<<TEXT_TO_ANALYZE>>>
 """
@@ -269,7 +267,7 @@ Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă forma
         print(f"\n--- [DEBUG] Trimit chunk la OpenAI... ---\n")
         result = call_openai_api(payload)
         json_string = result["choices"][0]["message"]["content"]
-        print(f"\n--- [DEBUG] Răspuns JSON primit: {json_string[:300]}... ---\n")
+        print(f"\n--- [DEBUG] Răspuns JSON primit: {json_string} ---\n")
         return json.loads(json_string).get("probleme", [])
     except Exception as e:
         print(f"\n--- [DEBUG] EROARE la analizarea chunk-ului: {e} ---\n")
