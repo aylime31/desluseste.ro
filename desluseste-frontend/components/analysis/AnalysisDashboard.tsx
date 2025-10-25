@@ -4,7 +4,8 @@ import { useState } from "react";
 import { SiteHeader } from "../layout/SiteHeader";
 import { SiteFooter } from "../layout/SiteFooter";
 import { ProblemsPane } from "./ProblemsPane";
-import { RiskHeatmap } from "./RiskHeatMap";
+import { RiskHeatmap } from "./RiskHeatmap";
+import { PdfViewer } from "./PdfViewer";
 import { ExecutiveSummary } from "./ExecutiveSummary";
 
 export function AnalysisDashboard({
@@ -80,6 +81,19 @@ export function AnalysisDashboard({
             <RiskHeatmap probleme={result.probleme_identificate} />
           </div>
         </section>
+
+        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6">
+  <h2 className="text-lg font-semibold text-slate-700 mb-4">Document analizat</h2>
+  <PdfViewer
+    fileUrl={result.fileUrl || "/uploads/latest.pdf"}
+    highlights={result.probleme_identificate.map((p: any, i: number) => ({
+      page: p.page || 1,
+      coords: p.coords || { x: 10 + i * 5, y: 20 + i * 5, width: 50, height: 4 },
+      color: "yellow",
+      text: p.descriere,
+    }))}
+  />
+</section>
       </main>
 
       <SiteFooter />

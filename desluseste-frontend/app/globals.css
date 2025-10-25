@@ -428,3 +428,11 @@ body{
   border-color: #38bdf8;
   color: #0369a1;
 }
+.react-pdf__Page {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.react-pdf__Page canvas {
+  border-radius: 12px;
+}
