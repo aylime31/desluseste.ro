@@ -2,21 +2,12 @@
 
 import { useCallback, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-
-import { FileUpload } from "@/components/ui/FileUpload";
-import { Alert } from "@/components/ui/alert";
 import { analizeazaPdf } from "@/lib/api";
 import { normalizeAnalysis, type NormalizedAnalysisResponse } from "@/lib/schemas";
+import FileUpload from "@/components/ui/FileUpload";
 
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { LandingHero } from "@/components/landing/LandingHero";
-import { UploadCard } from "@/components/landing/UploadCard";
-import { SkeletonCard, SkeletonText } from "@/components/analysis/Skeletons";
-
-// Lazy-load dashboard-ul (client-only)
 const AnalysisDashboard = dynamic(
-  () => import("@/components/analysis/AnalysisDashboard").then((m) => m.AnalysisDashboard),
+  () => import("@/components/analysis/AnalysisDashboard").then(m => m.AnalysisDashboard),
   { ssr: false }
 );
 
@@ -24,28 +15,22 @@ export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<NormalizedAnalysisResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const liveRef = useRef<HTMLDivElement | null>(null); // pentru focus management/a11y
+  const liveRef = useRef<HTMLDivElement | null>(null);
 
   const handleFileAccepted = useCallback((file: File) => {
     setSelectedFile(file);
-    setResult(null);
-    setError(null);
     requestAnimationFrame(() => liveRef.current?.focus());
   }, []);
 
   const handleAnalyze = useCallback(async () => {
     if (!selectedFile) return;
     setIsLoading(true);
-    setError(null);
-    setResult(null);
     try {
       const raw = await analizeazaPdf(selectedFile);
-      const normalized = normalizeAnalysis(raw);
-      setResult(normalized);
+      setResult(normalizeAnalysis(raw));
       requestAnimationFrame(() => liveRef.current?.focus());
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "A apărut o eroare la analiză.");
+      alert(e instanceof Error ? e.message : "A apărut o eroare la analiză.");
     } finally {
       setIsLoading(false);
     }
@@ -54,81 +39,104 @@ export default function HomePage() {
   const handleReset = useCallback(() => {
     setResult(null);
     setSelectedFile(null);
-    setError(null);
     try {
       if (window.location.hash) history.replaceState(null, "", window.location.pathname);
     } catch {}
   }, []);
 
-  // dashboard după analiză
+  // După analiză → dashboard
   if (result) {
     return <AnalysisDashboard result={result} onReset={handleReset} />;
   }
 
-  // landing + upload
+  // Landing ultra-simplu (logo + dropzone)
   return (
-    <div className="min-h-screen bg-app">
-      <SiteHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* HERO + UPLOAD side-by-side */}
-        <section className="mt-6 lg:mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Stânga: Hero + Beneficii */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <LandingHero />
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* Hero bar albastru + logo centrat */}
+      <header className="hero-blue">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
+          <div className="inline-flex items-center gap-2 font-extrabold tracking-wide">
+            <span className="logo-dot" />
+            DESLUȘEȘTE.RO
+          </div>
+        </div>
+      </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="card-tight text-left">
-                <h3 className="text-base font-semibold mb-1">Rapid</h3>
-                <p className="text-sm text-muted">Rezultate în câteva secunde cu AI.</p>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Dropzone central ca Adobe */}
+        <section className="upload-wrap">
+          <div ref={liveRef} tabIndex={-1} aria-live="polite" className="sr-only" />
+          <div className="dz2-card">
+            <div className="dz2-left">
+              <div className="brand-title">
+                <span className="brand-badge" aria-hidden />
+                <span>Deslușește</span>
               </div>
-              <div className="card-tight text-left">
-                <h3 className="text-base font-semibold mb-1">Limbaj simplu</h3>
-                <p className="text-sm text-muted">Clauze explicate fără jargon.</p>
-              </div>
-              <div className="card-tight text-left sm:col-span-2">
-                <h3 className="text-base font-semibold mb-1">Confidențial</h3>
-                <p className="text-sm text-muted">Procesare sigură, în română.</p>
+              <h1 className="dz2-h1">Încarcă PDF</h1>
+              <p className="dz2-sub">Trage un fișier aici sau alege de pe dispozitiv.</p>
+
+              <div className="dz2-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => document.getElementById("file-input-hidden")?.click()}
+                  disabled={isLoading}
+                >
+                  Selectează un fișier
+                </button>
               </div>
             </div>
-          </div>
 
-          {/* Dreapta: Upload + Erori + Skeleton */}
-          <div className="lg:col-span-7">
-            {/* Zonă pentru focus-management / anunțare rezultate */}
-            <div ref={liveRef} tabIndex={-1} aria-live="polite" className="outline-none" />
+            <div className="dz2-right" aria-hidden>
+              {/* icon document mare */}
+              <svg viewBox="0 0 160 160" width="160" height="160" fill="none">
+                <rect x="28" y="12" width="84" height="112" rx="8" fill="#E7F0FF" />
+                <rect x="40" y="44" width="60" height="10" rx="5" fill="#2563EB" opacity=".8" />
+                <rect x="40" y="62" width="60" height="10" rx="5" fill="#2563EB" opacity=".6" />
+                <rect x="40" y="80" width="40" height="10" rx="5" fill="#2563EB" opacity=".4" />
+                <path d="M112 124L144 92" stroke="#3a589aff" strokeWidth="10" strokeLinecap="round"/>
+                <rect x="104" y="116" width="40" height="28" rx="8" fill="#DBEAFE" />
+              </svg>
+            </div>
 
-            <UploadCard
-              selectedFile={selectedFile}
-              isLoading={isLoading}
-              onAnalyze={handleAnalyze}
-              onClear={handleReset}
-              Upload={({ disabled }) => (
-                <FileUpload onFileAccepted={handleFileAccepted} disabled={disabled} />
-              )}
+            {/* zona de drop (overlay) */}
+            <FileUpload
+              onFileAccepted={setSelectedFile}
+              accept="application/pdf"
+              disabled={isLoading}
+              variant="light-overlay"  /* folosește overlay-ul cardului alb */
+              inputId="file-input-hidden"
             />
-
-            {error && (
-              <Alert
-                variant="destructive"
-                className="mt-6 bg-red-900/20 border-red-800/50 text-red-200"
-              >
-                {error}
-              </Alert>
-            )}
-
-            {isLoading && (
-              <section className="mt-6 grid grid-cols-1 gap-6">
-                <SkeletonCard />
-                <div className="card-tight">
-                  <div className="h-4 w-40 bg-slate-700/50 rounded mb-4" />
-                  <SkeletonText lines={8} />
-                </div>
-              </section>
-            )}
           </div>
+
+          {/* Dacă s-a ales un fișier, afișează bara de acțiuni ca Adobe */}
+          {selectedFile && (
+            <div className="file-bar">
+              <div className="file-info">
+                <span className="file-icon" aria-hidden>📄</span>
+                <div>
+                  <div className="file-name">{selectedFile.name}</div>
+                  <div className="file-size">
+                    {(selectedFile.size / 1024).toFixed(1)} KB
+                  </div>
+                </div>
+              </div>
+              <div className="file-actions">
+                <button
+                  className="btn-primary"
+                  onClick={handleAnalyze}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Se procesează…" : "Analizează"}
+                </button>
+                <button className="btn-ghost" onClick={handleReset} disabled={isLoading}>
+                  Anulează
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
-      <SiteFooter />
     </div>
   );
 }
