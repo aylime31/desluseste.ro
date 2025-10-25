@@ -24,13 +24,11 @@ export function UploadCard({
   const titleId = useId();
 
   return (
-    <section aria-labelledby={titleId} className="card rounded-3xl p-6 sm:p-8">
-      <h2 id={titleId} className="sr-only">
-        Încarcă document
-      </h2>
+   <section aria-labelledby={titleId} className="rounded-3xl">
+  <h2 id={titleId} className="sr-only">Încarcă document</h2>
 
-      {/* zona de upload */}
-      {Upload({ disabled: isLoading })}
+  {/* dropzone */}
+  <Upload disabled={isLoading} />
 
       {/* fișier selectat */}
       {selectedFile && (

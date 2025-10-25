@@ -68,3 +68,68 @@ mark[data-risk="scazut"]  { background-color: rgba(16,185,129,.20); color: #ecfd
 /* —— Tipografie de bază —— */
 html,body{ height:100%; }
 body{ color: #e2e8f0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* ===== Dropzone (Smallpdf-like) ===== */
+.dz{
+  position: relative;
+  border-radius: 14px;
+  background: #6C4AF2;            /* mov plăcut */
+  padding: 18px;
+}
+.dz-inner{
+  position: relative;
+  min-height: 220px;               /* înălțimea mare ca în poză */
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #f8fafc;
+  cursor: pointer;
+  outline: none;
+}
+/* rama punctată albă */
+.dz-inner::before{
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 10px;
+  border: 2px dashed rgba(255,255,255,0.9);
+  pointer-events: none;
+}
+.dz-hover::before{
+  border-color: #ffffff;           /* mai vizibil on drag */
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.25) inset;
+}
+
+.dz-icon{ margin-bottom: 12px; opacity: .95; }
+.dz-title{
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: .2px;
+  margin-bottom: 6px;
+}
+.dz-sub{
+  opacity: .9;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+.dz-btn{
+  background: #fff;
+  color: #111827;
+  font-weight: 700;
+  border: 0;
+  border-radius: 8px;
+  height: 42px;
+  padding: 0 18px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.dz-btn:disabled{
+  opacity: .6;
+  cursor: not-allowed;
+}
+.dz-note{
+  opacity: .9;
+  font-size: 13px;
+}
