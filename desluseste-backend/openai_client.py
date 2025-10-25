@@ -234,18 +234,18 @@ Am înțeles corect comparația? (greater/lesser/between)
 Am verificat ambele scenarii? (când X e mai mare, când Y e mai mare)
 Explicația mea reflectă logica matematică corectă?
 Remember: Companies have lawyers. Now users have you. Be worthy of that trust.
-DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF.
+DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF, AWARE OF THE ROMANIAN LAW. DO NOT JUST REFER THEM TO A LAWYER OR TELL THEM TO VERIFY.
 **FORMATUL JSON DE IEȘIRE (obligatoriu):**
 Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă formatul cerut. Obiectul principal trebuie să conțină o cheie "probleme", care este o listă de obiecte JSON. Dacă nu găsești nimic, returnează o listă goală.
 
-**JSON FORMAT (You need to give values to the keys, preferably unique to each individual clause):**
+**JSON FORMAT EXAMPLE (You need to give values to the keys, preferably unique to each individual clause):**
 {{
-  "titlu_problema",
-  "clauza_originala",
-  "categorie_problema",
-  "explicatie_simpla",
-  "nivel_atentie",
-  "sugestie"
+  "titlu_problema": "Limitarea răspunderii",
+  "clauza_originala": "Nu ne asumăm nicio răspundere pentru pierderile indirecte sau consecințiale.",
+  "categorie_problema": "Limitare de răspundere",
+  "explicatie_simpla": "Această clauză limitează responsabilitatea companiei pentru daunele indirecte, ceea ce poate fi problematic pentru utilizatori.",
+  "nivel_atentie": "Ridicat",
+  "sugestie": "Cere o clarificare asupra modului în care compania definește 'pierderile indirecte' și 'consecințele'."
 }}
 
 **TEXT DE ANALIZAT:**
@@ -466,7 +466,7 @@ Am înțeles corect comparația? (greater/lesser/between)
 Am verificat ambele scenarii? (când X e mai mare, când Y e mai mare)
 Explicația mea reflectă logica matematică corectă?
 Remember: Companies have lawyers. Now users have you. Be worthy of that trust.
-DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF.
+DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF, AWARE OF THE ROMANIAN LAW.
 Scrie un rezumat executiv în română, de 3-4 propoziții, pentru următoarele probleme identificate într-un contract, subliniind cele mai grave: {context}
 """
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}], "temperature": 0.5}
