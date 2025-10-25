@@ -8,12 +8,9 @@ import FileUpload from "@/components/ui/FileUpload";
 import { analizeazaPdf } from "@/lib/api";
 import { normalizeAnalysis, type NormalizedAnalysisResponse } from "@/lib/schemas";
 
-// Lazy load pentru dashboard (se încarcă doar după analiză)
+// Dashboard-ul se încarcă doar după analiză
 const AnalysisDashboard = dynamic(
-  () =>
-    import("@/components/analysis/AnalysisDashboard").then(
-      (m) => m.AnalysisDashboard
-    ),
+  () => import("@/components/analysis/AnalysisDashboard").then(m => m.AnalysisDashboard),
   { ssr: false }
 );
 
@@ -34,11 +31,11 @@ export default function HomePage() {
       const raw = await analizeazaPdf(selectedFile);
       const normalized = normalizeAnalysis(raw);
       setResult(normalized);
-      // focus pentru a11y când apar rezultatele
+
+      // focus a11y când apare rezultatul
       requestAnimationFrame(() => liveRef.current?.focus());
     } catch (e: unknown) {
-      const msg =
-        e instanceof Error ? e.message : "A apărut o eroare la analiză.";
+      const msg = e instanceof Error ? e.message : "A apărut o eroare la analiză.";
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -51,37 +48,35 @@ export default function HomePage() {
     setError(null);
   }, []);
 
-  // Când avem rezultat, arătăm direct dashboard-ul
+  // După ce avem rezultat → afișăm dashboard-ul
   if (result) {
     return <AnalysisDashboard result={result} onReset={handleReset} />;
   }
 
   return (
     <>
-      {/* HEADER cu doar logo */}
+      {/* HEADER cu logo */}
       <header className="hero-blue">
         <div className="header-container">
           <Image
             src="/logo.png"
             alt="Deslușește.ro"
-            width={220}
-            height={48}
+            width={160}
+            height={40}
             className="site-logo"
             priority
           />
         </div>
       </header>
 
-      {/* CONȚINUT PRINCIPAL */}
+      {/* CONȚINUT */}
       <main className="upload-wrap">
-        {/* zonă pentru focus management/a11y */}
+        {/* zonă live pentru a11y */}
         <div ref={liveRef} tabIndex={-1} aria-live="polite" className="sr-only" />
 
         <div className="dz2-card">
-          {/* Păstrăm inputul real (invizibil) și deschidem prin label */}
-          <div
-            style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
-          >
+          {/* input real ascuns; label-ul de mai jos îl declanșează */}
+          <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
             <FileUpload
               onFileAccepted={setSelectedFile}
               accept="application/pdf"
@@ -95,24 +90,14 @@ export default function HomePage() {
             <p className="dz2-sub">Trage un fișier aici sau alege de pe dispozitiv.</p>
 
             <div className="dz2-actions">
-              <label
-                htmlFor="file-input-hidden"
-                className="btn-primary"
-                style={{ cursor: "pointer" }}
-              >
+              <label htmlFor="file-input-hidden" className="btn-primary" style={{ cursor: "pointer" }}>
                 Selectează un fișier
               </label>
             </div>
           </div>
 
           <div className="dz2-right" aria-hidden>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="120"
-              height="120"
-              fill="none"
-              viewBox="0 0 120 120"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="none" viewBox="0 0 120 120">
               <rect x="30" y="30" width="60" height="70" rx="6" fill="#e8efff" />
               <rect x="40" y="50" width="40" height="6" rx="3" fill="#2563eb" />
               <rect x="40" y="62" width="40" height="6" rx="3" fill="#2563eb" />
@@ -122,35 +107,23 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Bara cu fișierul SUB card, centrată */}
+        {/* Bară fișier sub card */}
         {selectedFile && (
           <div className="file-bar-container" style={{ maxWidth: 860, width: "100%" }}>
             <div className="file-bar">
               <div className="file-info">
-                <span className="file-icon" aria-hidden>
-                  📄
-                </span>
+                <span className="file-icon" aria-hidden>📄</span>
                 <div>
                   <div className="file-name">{selectedFile.name}</div>
-                  <div className="file-size">
-                    {(selectedFile.size / 1024).toFixed(1)} KB
-                  </div>
+                  <div className="file-size">{(selectedFile.size / 1024).toFixed(1)} KB</div>
                 </div>
               </div>
 
               <div className="file-actions">
-                <button
-                  className="btn-primary"
-                  onClick={handleAnalyze}
-                  disabled={isLoading}
-                >
+                <button className="btn-primary" onClick={handleAnalyze} disabled={isLoading}>
                   {isLoading ? "Se procesează…" : "Analizează"}
                 </button>
-                <button
-                  className="btn-ghost"
-                  onClick={() => setSelectedFile(null)}
-                  disabled={isLoading}
-                >
+                <button className="btn-ghost" onClick={() => setSelectedFile(null)} disabled={isLoading}>
                   Anulează
                 </button>
               </div>
@@ -158,13 +131,12 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Eroare vizibilă */}
         {error && (
           <div className="file-bar-container" aria-live="assertive" style={{ maxWidth: 860, width: "100%" }}>
             <div className="file-bar" style={{ borderColor: "#ef4444" }}>
               <div className="file-name" style={{ color: "#b91c1c" }}>{error}</div>
-              <button className="btn-ghost" onClick={() => setError(null)}>
-                Închide
-              </button>
+              <button className="btn-ghost" onClick={() => setError(null)}>Închide</button>
             </div>
           </div>
         )}

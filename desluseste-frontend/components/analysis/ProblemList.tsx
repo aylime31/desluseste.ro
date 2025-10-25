@@ -33,21 +33,15 @@ export function ProblemsList({
   onSelect: (index: number) => void;
 }) {
   if (!problems?.length) {
-    return (
-      <div className="text-slate-500">
-        Nicio problemă marcată în document.
-      </div>
-    );
+    return <div className="text-slate-500">Nicio problemă marcată în document.</div>;
   }
 
   return (
     <ul className="space-y-3">
       {problems.map((p, i) => {
         const title = p.titlu || p.categorie || "Clauză posibil problematică";
-        const snippet =
-          p.clauza_originala || p.excerpt || p.fragment || "(fragment nedisponibil)";
+        const snippet = p.clauza_originala || p.excerpt || p.fragment || "(fragment nedisponibil)";
         const level = p.nivel_atentie || "Mediu";
-
         const isActive = activeIndex === i;
 
         return (
@@ -62,24 +56,16 @@ export function ProblemsList({
             onClick={() => onSelect(i)}
           >
             <div className="flex items-start gap-3">
-              {/* pictogramă */}
               <div className="mt-1 text-blue-500">⚑</div>
-
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-slate-900">{title}</h3>
-                  <span
-                    className={
-                      "text-xs px-2 py-0.5 rounded-full " + badgeForLevel(level)
-                    }
-                  >
+                  <span className={"text-xs px-2 py-0.5 rounded-full " + badgeForLevel(level)}>
                     {level}
                   </span>
                 </div>
 
-                <p className="mt-1 text-sm text-slate-700 line-clamp-2">
-                  {snippet}
-                </p>
+                <p className="mt-1 text-sm text-slate-700 line-clamp-2">{snippet}</p>
 
                 {p.recomandare ? (
                   <p className="mt-2 text-xs text-slate-600">

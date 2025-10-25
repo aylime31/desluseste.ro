@@ -1,0 +1,312 @@
+/* ===== Desluseste: SKIN izolat pentru pagina de analiză ===== */
+
+/* 0) Reset SCOPAT – nu atinge restul site-ului */
+.analysis-skin,
+.analysis-skin * {
+  box-sizing: border-box;
+}
+.analysis-skin {
+  --ink-900:#0f172a;
+  --ink-800:#111827;
+  --ink-700:#334155;
+  --ink-600:#475569;
+  --g-50:#f8fafc;
+  --g-100:#f3f4f6;
+  --g-200:#e5e7eb;
+  --g-300:#cbd5e1;
+  --violet-600:#7c3aed;
+  --violet-700:#6d28d9;
+  --emerald-600:#059669;
+  --rose-600:#e11d48;
+  --amber-500:#f59e0b;
+}
+
+/* Elimină comportamentul nativ care-ți făcea borduri aiurea */
+.analysis-skin fieldset,
+.analysis-skin legend,
+.analysis-skin details,
+.analysis-skin summary {
+  all: revert;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* 1) Container + fundal */
+.analysis-skin .screen {
+  min-height: 100vh;
+  background: linear-gradient(180deg,#f1f5ff 0%,#ffffff 60%,#f9fafb 100%);
+  padding: 32px 16px 64px;
+  display: grid;
+  place-items: start center;
+}
+@media (min-width: 768px) {
+  .analysis-skin .screen { padding: 40px 24px 80px; }
+}
+
+/* 2) Card mare */
+.analysis-skin .card {
+  width: min(1040px, 100%);
+  background: #fff;
+  border: 1px solid var(--g-200);
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(2,6,23,.08);
+  padding: clamp(20px, 3vw, 32px);
+}
+
+/* 3) Grid două coloane (Text analizat vs Rezumat/Probleme) */
+.analysis-skin .grid {
+  display: grid;
+  gap: 24px;
+}
+@media (min-width: 900px) {
+  .analysis-skin .grid {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 28px;
+  }
+}
+
+/* 4) Headings + tipografie */
+.analysis-skin h2 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink-900);
+  letter-spacing: .2px;
+}
+.analysis-skin p { margin: 0; color: var(--ink-700); line-height: 1.65; }
+.analysis-skin .muted { color: var(--ink-600); font-size: .9rem; }
+
+/* 5) Panouri secțiune */
+.analysis-skin .panel {
+  background: #fff;
+  border: 1px solid var(--g-200);
+  border-radius: 16px;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .analysis-skin .panel { padding: 20px; }
+}
+
+/* 6) Textul original (monospace, cu cadru soft) */
+.analysis-skin .orig {
+  margin-top: 8px;
+  background: var(--g-50);
+  border: 1px solid var(--g-200);
+  border-radius: 12px;
+  padding: 14px;
+  font: 400 13px/1.7 ui-monospace, SFMono-Regular, Menlo, Monaco, "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+  color: var(--ink-800);
+  white-space: pre-wrap;
+}
+
+/* 7) Badge & tag-uri */
+.analysis-skin .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+}
+.analysis-skin .pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fff1f2;
+  color: var(--rose-600);
+  border: 1px solid #ffe4e6;
+}
+
+/* 8) Card problemă */
+.analysis-skin .problem {
+  background: #f8fafc;
+  border: 1px solid var(--g-200);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.analysis-skin .problem + .problem { margin-top: 10px; }
+
+.analysis-skin .problem .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--ink-900);
+  margin-bottom: 6px;
+}
+.analysis-skin .problem blockquote {
+  margin: 6px 0 0;
+  background: #fff;
+  border: 1px solid var(--g-200);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink-800);
+}
+.analysis-skin .problem .notes {
+  margin-top: 8px;
+  color: var(--ink-700);
+  font-size: .95rem;
+}
+.analysis-skin .problem .recommend {
+  margin-top: 10px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  color: #065f46;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+/* 9) Butoane */
+.analysis-skin .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: 1px solid var(--g-300);
+  background: #fff;
+  color: var(--ink-800);
+  transition: box-shadow .15s ease, transform .02s ease, background .15s ease, border-color .15s ease;
+}
+.analysis-skin .btn:hover { background: var(--g-100); border-color: var(--g-200); }
+.analysis-skin .btn:active { transform: translateY(1px); }
+.analysis-skin .btn.primary {
+  border: 0;
+  background: linear-gradient(90deg,#6366f1,#7c3aed);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(124,58,237,.22);
+}
+.analysis-skin .btn.primary:hover { background: linear-gradient(90deg,#4f46e5,#6d28d9); }
+
+/* 10) Footer disclaimer */
+.analysis-skin .disclaimer {
+  margin-top: 12px;
+  color: var(--ink-600);
+  font-size: 12px;
+}
+
+/* ===== Probleme identificate – UI premium ===== */
+
+.analysis-skin .issues {
+  display: grid;
+  gap: 12px;
+}
+
+.analysis-skin .issue {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--g-200);
+  border-left-width: 6px;            /* accent pe severitate */
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 6px 14px rgba(2,6,23,.05);
+  transition: translate .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.analysis-skin .issue:hover {
+  translate: 0 -1px;
+  box-shadow: 0 10px 22px rgba(2,6,23,.07);
+}
+
+/* Severitate */
+.analysis-skin .issue--high   { border-left-color: #e11d48; /* rose-600 */ }
+.analysis-skin .issue--medium { border-left-color: #f59e0b; /* amber-500 */ }
+.analysis-skin .issue--low    { border-left-color: #10b981; /* emerald-500 */ }
+
+.analysis-skin .issue__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.analysis-skin .issue__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  background: #fff7ed;      /* soft amber */
+  color: #b45309;
+  font-size: 16px;
+  border: 1px solid #fde68a;
+}
+.analysis-skin .issue__title {
+  margin: 0;
+  font-weight: 800;
+  color: var(--ink-900);
+  font-size: 15px;
+  letter-spacing: .1px;
+}
+.analysis-skin .issue__pill {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .35px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.analysis-skin .issue__pill--high   { background:#fff1f2; color:#be123c; border-color:#fecdd3; }
+.analysis-skin .issue__pill--medium { background:#fffbeb; color:#b45309; border-color:#fde68a; }
+.analysis-skin .issue__pill--low    { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+
+/* Quote din contract */
+.analysis-skin .issue__quote {
+  margin: 6px 0 0;
+  background: #f8fafc;
+  border: 1px solid var(--g-200);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink-800);
+  line-height: 1.55;
+}
+.analysis-skin .issue__quote::before {
+  content: "„";
+  margin-right: 2px;
+}
+.analysis-skin .issue__quote::after {
+  content: "”";
+}
+
+/* Explicație + recomandare */
+.analysis-skin .issue__meta {
+  margin-top: 8px;
+  color: var(--ink-700);
+}
+.analysis-skin .issue__recommend {
+  margin-top: 10px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  color: #065f46;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+/* Badge “n găsite” din headerul panoului */
+.analysis-skin .badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+}
+

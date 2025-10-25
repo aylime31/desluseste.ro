@@ -1,123 +1,92 @@
 "use client";
-
 import { useMemo } from "react";
 
-type Nivel = "Scăzut" | "Mediu" | "Ridicat";
-
 type Problem = {
+  titlu?: string;
+  nivel_atentie?: "ridicat" | "mediu" | "scazut";
   clauza_originala?: string;
-  excerpt?: string;
-  fragment?: string;
-  nivel_atentie?: Nivel;
 };
 
 type Props = {
   text: string;
-  problems?: Problem[];
+  /** Acceptă ambele nume, ca să nu mai crape la mismatch */
+  probleme?: Problem[] | null;
+  problems?: Problem[] | null;
   activeIndex: number | null;
 };
 
-function escapeRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function riskClass(nivel?: Nivel) {
-  switch (nivel) {
-    case "Ridicat":
-      return "bg-red-500/20 text-red-50";
-    case "Mediu":
-      return "bg-amber-500/25 text-amber-50";
-    default:
-      return "bg-emerald-500/20 text-emerald-50";
-  }
-}
-
-export function HighlightedText({ text, problems = [], activeIndex }: Props) {
+export function HighlightedText({ text, probleme, problems, activeIndex }: Props) {
   const parts = useMemo(() => {
     if (!text) return [{ key: "0", text }];
 
-    // 1) extragem fragmentele utilizabile din probleme
-    const pats = (problems ?? [])
-      .map((p, idx) => {
-        const raw =
-          p.clauza_originala ?? p.excerpt ?? p.fragment ?? "";
-        const pattern = raw.trim();
-        return { idx, pattern };
-      })
-      .filter((p) => p.pattern && p.pattern.length > 3);
+    // === normalize list (probleme | problems) ===
+    const list = (Array.isArray(problems) ? problems : Array.isArray(probleme) ? probleme : []) as Problem[];
 
-    if (pats.length === 0) return [{ key: "0", text }];
+    // extrage pattern-uri valide (min 6 caractere utile)
+    const patterns = list
+      .map((p, idx) => ({ idx, pattern: (p.clauza_originala || "").trim() }))
+      .filter((p) => p.pattern && p.pattern.replace(/\W+/g, "").length >= 6);
 
-    // 2) expresie regulată combinată (case-insensitive)
-    const re = new RegExp(
-      "(" + pats.map((p) => escapeRegex(p.pattern)).join("|") + ")",
-      "gi"
-    );
+    if (patterns.length === 0) return [{ key: "0", text }];
 
-    const out: Array<
-      | { key: string; text: string }
-      | { key: string; text: string; matchForIdx: number }
-    > = [];
+    // === găsește TOATE aparițiile, cu poziții ===
+    type Hit = { start: number; end: number; idx: number; text: string };
+    const hits: Hit[] = [];
 
-    let last = 0;
-    let m: RegExpExecArray | null;
-
-    // 3) parcurgem toate potrivirile și decupăm segmentele
-    while ((m = re.exec(text)) !== null) {
-      const start = m.index;
-      const matched = m[0];
-
-      if (start > last) {
-        out.push({ key: `t-${last}`, text: text.slice(last, start) });
+    for (const { idx, pattern } of patterns) {
+      const re = new RegExp(escapeRegExp(pattern), "ig");
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text)) !== null) {
+        hits.push({ start: m.index, end: m.index + m[0].length, idx, text: m[0] });
+        // protecție infinite loop pe zero-width (nu ar trebui după filtrarea noastră)
+        if (m.index === re.lastIndex) re.lastIndex++;
       }
-
-      // aflăm care pattern a produs match-ul curent
-      // (prima potrivire exactă pe textul matched)
-      const which =
-        pats.find((p) =>
-          new RegExp("^" + escapeRegex(p.pattern) + "$", "i").test(matched)
-        )?.idx ?? -1;
-
-      out.push({ key: `m-${start}`, text: matched, matchForIdx: which });
-      last = start + matched.length;
     }
 
-    if (last < text.length) {
-      out.push({ key: `t-${last}`, text: text.slice(last) });
+    if (hits.length === 0) return [{ key: "0", text }];
+
+    // === sortează: start asc, apoi lungime desc (preferă potriviri mai lungi) ===
+    hits.sort((a, b) => (a.start - b.start) || (b.end - b.start) - (a.end - a.start));
+
+    // === elimină suprapunerile (greedy pe cele mai lungi deja sortate) ===
+    const accepted: Hit[] = [];
+    let lastEnd = -1;
+    for (const h of hits) {
+      if (h.start >= lastEnd) {
+        accepted.push(h);
+        lastEnd = h.end;
+      }
     }
 
-    return out;
-  }, [text, problems]);
+    // === construiește segmentele finale ===
+    const chunks: Array<{ text: string; idx?: number }> = [];
+    let cursor = 0;
+    for (const h of accepted) {
+      if (h.start > cursor) chunks.push({ text: text.slice(cursor, h.start) });
+      chunks.push({ text: text.slice(h.start, h.end), idx: h.idx });
+      cursor = h.end;
+    }
+    if (cursor < text.length) chunks.push({ text: text.slice(cursor) });
+
+    let key = 0;
+    return chunks.map((c) => ({ key: String(key++), ...c }));
+  }, [text, probleme, problems]);
 
   return (
-    <div className="leading-relaxed whitespace-pre-wrap text-[15px] text-slate-900">
-      {parts.map((p, i) => {
-        if ("matchForIdx" in p) {
-          const idx = p.matchForIdx;
-          const nivel = problems[idx]?.nivel_atentie;
-          const isActive = activeIndex === idx;
-
-          return (
-            <mark
-              key={p.key}
-              data-idx={idx}
-              className={
-                "rounded px-0.5 " +
-                riskClass(nivel) +
-                (isActive
-                  ? " outline outline-2 outline-blue-500"
-                  : " outline-none")
-              }
-              title={
-                nivel ? `Nivel: ${nivel}` : "Fragment evidențiat"
-              }
-            >
-              {p.text}
-            </mark>
-          );
-        }
-        return <span key={p.key}>{p.text}</span>;
-      })}
-    </div>
+    <p className="leading-7 text-slate-800 whitespace-pre-wrap">
+      {parts.map((p) =>
+        typeof p.idx === "number" ? (
+          <mark key={p.key} className={`hl ${activeIndex === p.idx ? "hl-red" : "hl-yellow"}`}>
+            {p.text}
+          </mark>
+        ) : (
+          <span key={p.key}>{p.text}</span>
+        )
+      )}
+    </p>
   );
+}
+
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

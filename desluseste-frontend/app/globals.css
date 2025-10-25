@@ -1,8 +1,9 @@
+/* ==== TAILWIND FIRST ==== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ========= TOKENS ========= */
+/* ================= TOKENS ================= */
 :root{
   --blue-600:#2563eb;
   --blue-700:#1e40af;
@@ -18,11 +19,15 @@
   --g-200:#e5e7eb;
   --g-300:#cbd5e1;
 
+  /* alias pt. compat cu cod vechi */
+  --gray-200: var(--g-200);
+  --gray-300: var(--g-300);
+
   --shadow-lg:0 18px 38px rgba(0,0,0,.10);
   --ring:#3b82f6;
 }
 
-/* ========= BASE ========= */
+/* ================ BASE CLEAN ================ */
 html,body{height:100%;}
 body{
   color:var(--ink-800);
@@ -31,26 +36,35 @@ body{
   background:#fff;
 }
 
+/* neutralizează bordurile native care ți-au apărut negre */
+@layer base {
+  fieldset, legend, details, summary {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+
 /* scrollbar discret */
 *::-webkit-scrollbar{width:10px;height:10px}
 *::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:9999px}
 *{scrollbar-color:#94a3b8 transparent;scrollbar-width:thin}
 
-/* ========= APP BG ========= */
+/* ================ APP BG ================ */
 .bg-app{
   background:linear-gradient(180deg,#f1f5ff 0%,#ffffff 60%,#f9fafb 100%);
   min-height:100vh;
 }
 
-/* ========= HEADER ========= */
+/* ================ HEADER (UNSINGUR) ================ */
 .hero-blue{
-  background:linear-gradient(90deg,#2b50d8 0%, #3a60ed 100%);
+  background: linear-gradient(90deg, #9cd16e 0%, #9cd16e 100%); /* verde brand din screenshot */
   color:#fff;
-  height:84px;
+  height:80px;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
 }
 .header-container{
   width:100%;
@@ -58,63 +72,31 @@ body{
   padding:0 2rem;
   display:flex;
   align-items:center;
+  justify-content:flex-start;
   gap:14px;
 }
 .logo-wrapper{display:flex;align-items:center;gap:12px}
-.site-logo{height:44px;width:auto;object-fit:contain}
+.site-logo{height:42px;width:auto;object-fit:contain}
 .site-title{font-weight:800;letter-spacing:.4px;text-transform:uppercase}
 
-/* ========= UPLOAD LAYOUT ========= */
-.upload-wrap{
-  min-height:calc(100vh - 84px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:32px 16px;
-}
-
-/* ========= CARD (Adobe-like) ========= */
-/* Header */
-.hero-blue{
-  background: #1e90a6;             /* o nuanță mai modernă de albastru-verde */
-  color:#fff;
-  height:80px;
-  display:flex;
-  align-items:center;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-.header-container{
-  width:100%;
-  max-width:1200px;
-  margin:0 auto;
-  padding:0 20px;
-  display:flex;
-  align-items:center;
-}
-.site-logo{
-  height:auto;
-  width:auto;
-  max-height:44px;                 /* ca să nu fie turtit */
-}
-
-/* CONTAINER principal: pe coloană ca să vină bara SUB card */
+/* ================ LAYOUT UPLOAD ================ */
 .upload-wrap{
   min-height:calc(100vh - 80px);
   display:flex;
-  flex-direction:column;           /* <- important */
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   padding:24px;
-  gap:24px;                        /* spațiu între card și bară */
+  gap:24px;
   width:100%;
 }
 
-/* Card alb */
+/* ================ CARD UPLOAD modern ================ */
 .dz2-card{
   position:relative;
   background:#fff;
   border-radius:22px;
-  border:2px dashed var(--gray-200);
+  border:2px dashed var(--g-200);
   padding:48px 64px;
   width:100%;
   max-width:1100px;
@@ -124,41 +106,8 @@ body{
   grid-template-columns:1fr 240px;
   gap:32px;
   cursor:pointer;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
-@media (max-width: 860px){
-  .dz2-card{ grid-template-columns:1fr; text-align:center; }
-  .dz2-right{ display:none; }
-}
-
-/* Bara FIȘIER – SUB card, centrată */
-.file-bar-container{
-  width:100%;
-  display:flex;
-  justify-content:center;
-}
-.file-bar{
-  background:#fff;
-  border:1px solid var(--gray-200);
-  border-radius:16px;
-  padding:14px 18px;
-  box-shadow:0 10px 20px rgba(2,6,23,.04);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  width:100%;
-  max-width:860px;
-  font-family:"Comfortaa", sans-serif;
-  flex-wrap:wrap;                  /* previne suprapunerea pe ecrane mici */
-}
-
-.file-info{ display:flex; align-items:center; gap:10px; }
-.file-icon{ font-size:20px; }
-.file-name{ font-weight:700; color:var(--ink-900); }
-.file-size{ font-size:13px; color:var(--ink-600); }
-
-.btn-primary,.btn-ghost{ font-family:"Comfortaa", sans-serif; }
-
 .dz2-card:hover{
   border-color:var(--blue-600);
   box-shadow:0 22px 44px rgba(37,99,235,.15);
@@ -168,8 +117,6 @@ body{
   background:var(--g-50);
   box-shadow:inset 0 0 0 4px rgba(37,99,235,.12), 0 24px 48px rgba(2,6,23,.10);
 }
-
-/* left side */
 .dz2-left .brand-title{
   display:inline-flex;align-items:center;gap:10px;
   color:var(--ink-800);font-weight:800;margin-bottom:8px;
@@ -186,17 +133,49 @@ body{
 }
 .dz2-sub{color:var(--ink-600);font-size:15px;margin-bottom:18px}
 .dz2-actions{display:flex;gap:10px;flex-wrap:wrap}
-
-/* right side */
 .dz2-right{display:flex;align-items:center;justify-content:center}
 
-/* ========= BUTTONS ========= */
+@media (max-width: 860px){
+  .dz2-card{ grid-template-columns:1fr; text-align:center; padding:36px 24px; }
+  .dz2-right{ display:none; }
+}
+
+/* ================ FILE BAR (UNSINGURĂ) ================ */
+.file-bar-container{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  margin-top:18px;
+}
+.file-bar{
+  background:#fff;
+  border:1px solid var(--g-200);
+  border-radius:16px;
+  padding:14px 18px;
+  box-shadow:0 10px 20px rgba(2,6,23,.04);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  width:100%;
+  max-width:860px;
+  font-family:"Comfortaa", sans-serif;
+  flex-wrap:wrap;
+}
+.file-info{ display:flex; align-items:center; gap:10px; }
+.file-icon{ font-size:20px; }
+.file-name{ font-weight:700; color:var(--ink-900); }
+.file-size{ font-size:13px; color:var(--ink-600); }
+.file-actions{ display:flex; gap:10px; }
+
+/* ================ BUTOANE ================ */
 .btn-primary{
   background:linear-gradient(90deg,#3b82f6,#6366f1);
   color:#fff;border:0;border-radius:12px;
   padding:12px 18px;font-weight:700;
   box-shadow:0 8px 18px rgba(99,102,241,.25);
   transition:background .15s ease, box-shadow .15s ease, transform .02s ease;
+  font-family:"Comfortaa", sans-serif;
 }
 .btn-primary:hover{
   background:linear-gradient(90deg,#2563eb,#4f46e5);
@@ -210,113 +189,18 @@ body{
   border:1px solid var(--g-300);border-radius:12px;
   padding:12px 16px;font-weight:600;
   transition:background .15s ease,border-color .15s ease;
+  font-family:"Comfortaa", sans-serif;
 }
 .btn-ghost:hover{background:var(--g-100);border-color:var(--g-200)}
 
-/* ========= FILE BAR ========= */
-.file-bar{
-  margin-top:18px;background:#fff;border:1px solid var(--g-200);
-  border-radius:14px;padding:12px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 8px 16px rgba(2,6,23,.04);
-}
-.file-info{display:flex;align-items:center;gap:10px}
-.file-icon{font-size:20px}
-.file-name{font-weight:700;color:var(--ink-900)}
-.file-size{font-size:12px;color:#64748b}
-.file-actions{display:flex;gap:10px}
-
-/* ========= A11y Focus ========= */
-:where(button,[role="button"],a,input[type="file"]) :focus-visible,
-.btn-primary:focus-visible,.btn-ghost:focus-visible{
+/* Focus vizibil CORECT (fără spațiu aiurea) */
+:where(button,[role="button"],a,input[type="file"], .btn-primary, .btn-ghost):focus-visible{
   outline:3px solid var(--ring);
   outline-offset:2px;
   border-radius:12px;
 }
 
-/* ========= RESPONSIVE ========= */
-@media (max-width: 860px){
-  .dz2-card{grid-template-columns:1fr;padding:36px 24px;text-align:center}
-  .dz2-right{display:none}
-}
-
-/* ========= HEADER SIMPLU ========= */
-.hero-blue {
-  background: linear-gradient(90deg, #9cd16e 0%, #9cd16e 100%);
-  color: #fff;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-container {
-  width: 100%;
-  max-width: 1280px;
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.site-logo {
-  height: 42px;
-  width: auto;
-  object-fit: contain;
-}
-
-/* =========================
-   BARA FIȘIER SUB CARD
-   ========================= */
-.file-bar-container {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.file-bar {
-  background: #ffffff;
-  border: 1px solid var(--gray-200);
-  border-radius: 16px;
-  padding: 14px 18px;
-  box-shadow: 0 10px 20px rgba(2,6,23,.04);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  max-width: 680px;
-  width: 100%;
-  font-family: "Comfortaa", sans-serif; /* font consistent */
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.file-icon {
-  font-size: 20px;
-}
-
-.file-name {
-  font-weight: 700;
-  color: var(--ink-900);
-}
-
-.file-size {
-  font-size: 13px;
-  color: var(--ink-600);
-}
-
-/* Butoanele păstrează același font ca restul UI */
-.btn-primary, .btn-ghost {
-  font-family: "Comfortaa", sans-serif;
-}
-
-/* ====== Pagina de analiză PDF ====== */
+/* ================ PAGINA ANALIZĂ ================ */
 .analysis-page {
   background: #f9fafb;
   min-height: 100vh;
@@ -326,7 +210,6 @@ body{
   align-items: center;
   gap: 32px;
 }
-
 .analysis-card {
   background: #fff;
   border-radius: 20px;
@@ -338,19 +221,8 @@ body{
   color: #111827;
   line-height: 1.6;
 }
-
-.analysis-header {
-  text-align: center;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 12px;
-  margin-bottom: 24px;
-}
-
-.analysis-header h1 {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #1e3a8a;
-}
+.analysis-header { text-align:center; border-bottom:1px solid #e5e7eb; padding-bottom:12px; margin-bottom:24px; }
+.analysis-header h1 { font-size:1.8rem; font-weight:800; color:#1e3a8a; }
 
 .analysis-risk {
   background: linear-gradient(90deg, #2563eb, #3b82f6);
@@ -363,76 +235,66 @@ body{
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.risk-chart {
-  margin: 24px 0;
-  padding: 16px;
-  background: #f1f5f9;
-  border-radius: 12px;
+.risk-chart { margin:24px 0; padding:16px; background:#f1f5f9; border-radius:12px; }
+
+.panel {
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  box-shadow:0 8px 20px rgba(2,6,23,.06);
+  padding:18px;
 }
+@media (min-width: 640px){ .panel { padding: 22px; } }
+
+.panel-title { display:flex; align-items:center; gap:10px; font-weight:800; color:#0f172a; margin:2px 0 12px; }
+.panel-subtle { color:#475569; }
+
+.problems { margin:6px 0 0; }
+.problems ul { list-style:none; padding-left:0; margin:0; }
+.problems li + li { margin-top:10px; }
 
 .problem-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
   background: #f8fafc;
-  border-left: 4px solid #dc2626;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
+.problem-title { display:flex; align-items:center; gap:10px; font-weight:700; color:#0f172a; margin-bottom:6px; }
+.badge { font-size:12px; font-weight:700; border-radius:999px; padding:4px 8px; background:#e2e8f0; color:#0f172a; }
+.badge--risk-high { background:#fee2e2; color:#991b1b; }
+.badge--risk-medium { background:#fef3c7; color:#92400e; }
+.badge--risk-low { background:#dcfce7; color:#166534; }
 
-.problem-card h3 {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #b91c1c;
-  margin-bottom: 4px;
-}
+.hl { border-radius:4px; padding:0 .15em; }
+.hl-yellow { background:#fff3b0; }
+.hl-red { background:#fecaca; }
+.hl-green { background:#bbf7d0; }
 
-.problem-card p {
-  margin: 0;
-  color: #374151;
-}
-
-.tip-card {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e3a8a;
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin-top: 12px;
-  font-size: 0.95rem;
-}
+.h3 { font-size:.95rem; font-weight:700; color:#0f172a; margin-bottom:8px; }
 
 .text-original {
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 18px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.9rem;
-  color: #374151;
-  white-space: pre-wrap;
-  margin-top: 12px;
+  background:#f9fafb;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  padding:18px;
+  font-family:"JetBrains Mono", monospace;
+  font-size:.9rem;
+  color:#374151;
+  white-space:pre-wrap;
+  margin-top:12px;
 }
 
 .btn-back {
-  margin-top: 32px;
-  background: transparent;
-  border: 1px solid #94a3b8;
-  border-radius: 10px;
-  padding: 10px 18px;
-  color: #475569;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  margin-top:32px;
+  background:transparent;
+  border:1px solid #94a3b8;
+  border-radius:10px;
+  padding:10px 18px;
+  color:#475569;
+  font-weight:600;
+  transition:all .2s ease;
 }
-.btn-back:hover {
-  background: #e0f2fe;
-  border-color: #38bdf8;
-  color: #0369a1;
-}
-.react-pdf__Page {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.react-pdf__Page canvas {
-  border-radius: 12px;
-}
+.btn-back:hover { background:#e0f2fe; border-color:#38bdf8; color:#0369a1; }
+
+.react-pdf__Page { box-shadow:0 4px 16px rgba(0,0,0,.08); border-radius:12px; overflow:hidden; }
+.react-pdf__Page canvas { border-radius:12px; }
