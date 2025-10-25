@@ -69,28 +69,32 @@ export default function HomePage() {
         </div>
 
         {/* Afișează fișierul sub card, nu în dreapta */}
-        {selectedFile && (
-          <div className="file-bar-container" style={{ maxWidth: 860, width: "100%" }}>
-            <div className="file-bar">
-              <div className="file-info">
-                <span className="file-icon" aria-hidden>📄</span>
-                <div>
-                  <div className="file-name">{selectedFile.name}</div>
-                  <div className="file-size">{(selectedFile.size / 1024).toFixed(1)} KB</div>
-                </div>
-              </div>
-
-              <div className="file-actions">
-                <button className="btn-primary" onClick={handleAnalyze} disabled={isLoading}>
-                  {isLoading ? "Se procesează…" : "Analizează"}
-                </button>
-                <button className="btn-ghost" onClick={() => setSelectedFile(null)} disabled={isLoading}>
-                  Anulează
-                </button>
-              </div>
-            </div>
+        {/* Afișează fișierul sub card, centrat */}
+{selectedFile && (
+  <div className="file-bar-container">
+    <div className="file-bar">
+      <div className="file-info">
+        <span className="file-icon" aria-hidden>📄</span>
+        <div>
+          <div className="file-name">{selectedFile.name}</div>
+          <div className="file-size">
+            {(selectedFile.size / 1024).toFixed(1)} KB
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className="file-actions">
+        <button className="btn-primary" onClick={handleAnalyze} disabled={isLoading}>
+          {isLoading ? "Se procesează…" : "Analizează"}
+        </button>
+        <button className="btn-ghost" onClick={() => setSelectedFile(null)} disabled={isLoading}>
+          Anulează
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </main>
     </>
   );
