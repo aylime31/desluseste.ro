@@ -242,39 +242,3 @@ body{
     justify-content: flex-end;
   }
 }
-/* ===== HEADER modern, cu gradient și umbră ===== */
-.hero-blue{
-  position: sticky;             /* rămâne sus când derulezi */
-  top: 0;
-  z-index: 50;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); /* albastru → royal */
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
-}
-
-/* container interior — centrează conținutul pe orizontală și verticală */
-.header-container{
-  height: 72px;                 /* înalt, dar nu masiv */
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;  /* logo în stânga */
-  gap: 12px;
-}
-
-/* imaginea de logo — mereu clară și bine încadrată */
-.site-logo{
-  height: 44px;                 /* controlăm înălțimea; lățimea se ajustează automat */
-  width: auto;
-  display: block;
-  object-fit: contain;
-  image-rendering: -webkit-optimize-contrast;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));  /* subtil, pentru contrast pe fundal */
-  will-change: transform;       /* mai smooth pe GPU */
-}
-
-@media (max-width: 640px){
-  .header-container{ height: 64px; }
-  .site-logo{ height: 36px; }
-}

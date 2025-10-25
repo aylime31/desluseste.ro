@@ -46,7 +46,7 @@ export default function HomePage() {
           </div>
 
           <div className="dz2-left">
-            <h1 className="dz2-h1">Încarcă PDF :) </h1>
+            <h1 className="dz2-h1">Încarcă un PDF :) </h1>
             <p className="dz2-sub">Trage un fișier aici sau alege de pe dispozitiv.</p>
 
             <div className="dz2-actions">
