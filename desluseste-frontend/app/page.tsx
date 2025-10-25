@@ -48,13 +48,20 @@ export default function HomePage() {
     <div className="min-h-screen bg-white text-slate-900">
       {/* header simplu, doar logo */}
       <header className="hero-blue">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
-          <div className="inline-flex items-center gap-2 font-extrabold tracking-wide">
-            <span className="logo-dot" />
-            DESLUȘEȘTE.RO
-          </div>
-        </div>
-      </header>
+  <div className="header-container">
+    <div className="logo-wrapper">
+      <img
+        src="/logo.png"
+        alt="Deslușește logo"
+        className="site-logo"
+      />
+      <span className="site-title">DESLUȘEȘTE.RO</span>
+    </div>
+  </div>
+</header>
+
+     
+
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <section className="upload-wrap">

@@ -2,267 +2,208 @@
 @tailwind components;
 @tailwind utilities;
 
-/* —— Tokens simple —— */
-:root{
-  --brand-from:#6366f1; /* indigo-500 */
-  --brand-to:#a855f7;   /* purple-500 */
+/* =========================
+   TOKENS (culori & spacing)
+   ========================= */
+:root {
+  --brand-blue-600: #2563eb;
+  --brand-blue-700: #1e3a8a;
+  --brand-royal:    #1e40af;
 
-  --slate-800: #1f2937;
-  --slate-900: #0f172a;
-  --slate-900-50: rgba(15,23,42,0.5);
-  --ring-indigo: #6366f1;
+  --ink-900:  #0f172a;
+  --ink-800:  #111827;
+  --ink-600:  #475569;
+
+  --gray-50:  #f8fafc;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #cbd5e1;
+
+  --shadow-lg: 0 16px 32px rgba(0,0,0,.08);
 }
 
-/* —— Background aplicație (fără @apply) —— */
-.bg-app{
-  background-image: linear-gradient(135deg,#020617 0%,#0f172a 50%,#020617 100%);
-  min-height: 100vh;
+/* =========================
+   TIPOGRAFIE & SCROLLBAR
+   ========================= */
+html, body { height: 100%; }
+body {
+  color: var(--ink-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #ffffff;
 }
 
-/* —— Carduri —— */
-.card{
-  background-color: var(--slate-900-50);
-  border: 1px solid #1e293b;          /* slate-800 */
-  border-radius: 1rem;                 /* ~ rounded-2xl */
-  backdrop-filter: blur(8px);
-}
-.card-tight{
-  background-color: var(--slate-900-50);
-  border: 1px solid #1e293b;
-  border-radius: 1rem;
-  backdrop-filter: blur(8px);
-  padding: 1rem;                       /* p-4 */
-}
-@media (min-width: 640px){ .card-tight{ padding: 1.5rem; } } /* sm:p-6 */
+/* Scrollbar discret */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+* { scrollbar-color: #94a3b8 transparent; scrollbar-width: thin; }
 
-/* —— Buton gradient —— */
-.btn-gradient{
-  color:#fff;
-  background-image: linear-gradient(to right,#4f46e5,#7c3aed); /* indigo-600 → purple-600 */
-  border-radius: .5rem;
-  padding-left: 1.5rem; padding-right: 1.5rem;
-}
-.btn-gradient:hover{
-  background-image: linear-gradient(to right,#4338ca,#6d28d9); /* indigo-700 → purple-700 */
-}
-
-/* —— Text secundar —— */
-.text-muted{ color: rgb(148 163 184); } /* slate-400 */
-
-/* —— Focus ring coerent —— */
-.focus-ring:focus-visible{
-  outline: 2px solid var(--ring-indigo);
-  outline-offset: 2px;
-}
-
-/* —— Highlight după risc —— */
-mark[data-risk="ridicat"] { background-color: rgba(239,68,68,.30); color: #ffe4e6; border-radius: .25rem; padding: 0 .125rem; }
-mark[data-risk="mediu"]   { background-color: rgba(245,158,11,.30); color: #fffbeb; border-radius: .25rem; padding: 0 .125rem; }
-mark[data-risk="scazut"]  { background-color: rgba(16,185,129,.20); color: #ecfdf5; border-radius: .25rem; padding: 0 .125rem; }
-
-/* —— Scrollbar —— */
-*::-webkit-scrollbar{ width:10px; height:10px; }
-*::-webkit-scrollbar-thumb{ background:#334155; border-radius:9999px; }
-*{ scrollbar-color:#334155 transparent; scrollbar-width:thin; }
-
-/* —— Tipografie de bază —— */
-html,body{ height:100%; }
-body{ color: #e2e8f0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-/* ===== Dropzone (Smallpdf-like) ===== */
-.dz{
-  position: relative;
-  border-radius: 14px;
-  background: #6C4AF2;            /* mov plăcut */
-  padding: 18px;
-}
-.dz-inner{
-  position: relative;
-  min-height: 220px;               /* înălțimea mare ca în poză */
-  border-radius: 12px;
+/* =========================
+   HEADER
+   ========================= */
+.hero-blue {
+  background: var(--brand-royal);
+  color: #fff;
+  height: 80px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: #f8fafc;
-  cursor: pointer;
-  outline: none;
-}
-/* rama punctată albă */
-.dz-inner::before{
-  content: "";
-  position: absolute;
-  inset: 10px;
-  border-radius: 10px;
-  border: 2px dashed rgba(255,255,255,0.9);
-  pointer-events: none;
-}
-.dz-hover::before{
-  border-color: #ffffff;           /* mai vizibil on drag */
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.25) inset;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 
-.dz-icon{ margin-bottom: 12px; opacity: .95; }
-.dz-title{
+.logo-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 800;
-  font-size: 22px;
-  letter-spacing: .2px;
-  margin-bottom: 6px;
+  font-size: 1.25rem;
+  letter-spacing: .5px;
+  text-transform: uppercase;
 }
-.dz-sub{
-  opacity: .9;
-  font-size: 14px;
-  margin-bottom: 14px;
-}
-.dz-btn{
-  background: #fff;
-  color: #111827;
-  font-weight: 700;
-  border: 0;
-  border-radius: 8px;
-  height: 42px;
-  padding: 0 18px;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-.dz-btn:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-}
-.dz-note{
-  opacity: .9;
-  font-size: 13px;
-}
-/* ===== Hero albastru minimalist ===== */
-.hero-blue{
-  background: linear-gradient(180deg, #1d4ed8 0%, #1d4ed8 60%, #ffffff 60%);
-  color: #fff;
-}
-.logo-dot{
-  width: 14px; height: 14px; border-radius: 4px;
-  background: linear-gradient(135deg, #60a5fa, #1d4ed8);
+
+.logo-dot {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #60a5fa, var(--brand-royal));
   display: inline-block;
 }
 
-/* ===== Card mare alb tip Adobe ===== */
-.upload-wrap{ margin: 24px auto 48px; }
-.dz2-card{
+/* =========================
+   LAYOUT UPLOAD (card centrat)
+   ========================= */
+.upload-wrap {
+  min-height: calc(100vh - 80px); /* scădem header-ul */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+/* =========================
+   CARD ALB (Adobe-like)
+   ========================= */
+.dz2-card {
   position: relative;
-  background: #ffffff;
+  background: #fff;
   border-radius: 22px;
-  border: 2px dashed #e5e7eb; /* gri deschis */
-  padding: 40px 36px;
-  min-height: 320px;
-  box-shadow:
-    0 20px 40px rgba(2, 6, 23, 0.08),
-    0 1px 2px rgba(2, 6, 23, 0.06);
+  border: 2px dashed var(--gray-200);
+  padding: 48px 64px;
+  width: 100%;
+  max-width: 860px;
+  min-height: 380px;
+  box-shadow: var(--shadow-lg);
   display: grid;
   grid-template-columns: 1fr 240px;
-  gap: 24px;
+  gap: 32px;
+  cursor: pointer;               /* clic oriunde */
+  transition: box-shadow .2s ease, border-color .2s ease, background .2s ease;
 }
-@media (max-width: 860px){
-  .dz2-card{ grid-template-columns: 1fr; text-align: center; }
-  .dz2-right{ display:none; }
+.dz2-card:hover {
+  border-color: var(--brand-blue-600);
+  box-shadow: 0 20px 40px rgba(37,99,235,.15);
+}
+.dz2-card.is-hover {
+  border-color: var(--brand-blue-600);
+  background: var(--gray-50);
+  box-shadow: inset 0 0 0 4px rgba(37,99,235,.12);
 }
 
-.dz2-left .brand-title{
-  display: inline-flex; align-items: center; gap: 10px;
-  color: #111827; font-weight: 800; margin-bottom: 8px;
+/* stânga: titlu + acțiuni */
+.dz2-left .brand-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-800);
+  font-weight: 800;
+  margin-bottom: 8px;
 }
-.brand-badge{
+.brand-badge {
   width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, #93c5fd, #2563eb);
+  background: linear-gradient(135deg, #93c5fd, var(--brand-blue-600));
   display: inline-block;
 }
-.dz2-h1{
+.dz2-h1 {
   font-size: clamp(28px, 4vw, 40px);
-  line-height: 1.1; font-weight: 900; color: #0f172a;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--ink-900);
   margin: 4px 0 8px;
 }
-.dz2-sub{ color: #475569; font-size: 15px; }
-
-.dz2-actions{ margin-top: 18px; display: flex; gap: 10px; }
-.btn-primary{
-  background: #2563eb; color: #fff; border: 0;
-  border-radius: 10px; padding: 12px 18px; font-weight: 700;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+.dz2-sub {
+  color: var(--ink-600);
+  font-size: 15px;
 }
-.btn-primary:disabled{ opacity: .6; cursor: not-allowed; }
-.btn-ghost{
-  background: transparent; color: #334155; border: 1px solid #cbd5e1;
-  border-radius: 10px; padding: 12px 16px; font-weight: 600;
-}
-.dz2-right{ display: flex; align-items: center; justify-content: center; }
+.dz2-actions { margin-top: 18px; display: flex; gap: 10px; }
 
-/* Overlay de drop pe card (dashed) */
-.dz2-overlay{
-  position: absolute; inset: 10px; border-radius: 16px;
-  border: 2px dashed rgba(148,163,184,.9);
+/* dreapta: pictogramă */
+.dz2-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   BUTOANE
+   ========================= */
+.btn-primary {
+  background: var(--brand-blue-600);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(37,99,235,.25);
+  transition: background .15s ease, box-shadow .15s ease, transform .02s ease;
+}
+.btn-primary:hover {
+  background: var(--brand-blue-700);
+  box-shadow: 0 10px 20px rgba(37,99,235,.35);
+}
+.btn-primary:active { transform: translateY(1px); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-ghost {
   background: transparent;
+  color: #334155;
+  border: 1px solid var(--gray-300);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 600;
+  transition: background .15s ease, border-color .15s ease;
 }
-.dz2-overlay.is-hover{
-  border-color: #2563eb;
-  box-shadow: inset 0 0 0 3px rgba(37, 99, 235, .15);
+.btn-ghost:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
 }
 
-/* Bară fișier selectat + acțiuni */
-.file-bar{
+/* =========================
+   BARĂ FIȘIER SELECTAT
+   ========================= */
+.file-bar {
   margin-top: 16px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border: 1px solid var(--gray-200);
   border-radius: 14px;
   padding: 12px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: 0 8px 16px rgba(2,6,23,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 16px rgba(2,6,23,.04);
 }
-.file-info{ display: flex; align-items: center; gap: 10px; }
-.file-icon{ font-size: 20px; }
-.file-name{ font-weight: 700; color: #0f172a; }
-.file-size{ font-size: 12px; color: #64748b; }
-.file-actions{ display: flex; gap: 10px; }
+.file-info { display: flex; align-items: center; gap: 10px; }
+.file-icon { font-size: 20px; }
+.file-name { font-weight: 700; color: var(--ink-900); }
+.file-size { font-size: 12px; color: #64748b; }
+.file-actions { display: flex; gap: 10px; }
 
-
-/* Header albastru simplu, fără dungă dublă */
-.hero-blue{
-  background: #1d4ed8;
-  color: #fff;
-}
-
-/* Centrare verticală pe desktop (card în mijloc) */
-.upload-wrap{
-  margin: 0 auto;
-}
-@media (min-width: 768px){
-  .upload-wrap {
-    min-height: calc(100vh - 4rem); /* 4rem = h-16 header */
-    display: flex;
-    align-items: center;
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 768px) {
+  .dz2-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 32px 24px;
   }
+  .dz2-right { display: none; }
 }
-
-/* Card alb Adobe-like */
-.dz2-card{
-  position: relative;
-  background: #ffffff;
-  border-radius: 22px;
-  border: 2px dashed #e5e7eb;
-  padding: 40px 36px;
-  min-height: 320px;
-  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.08), 0 1px 2px rgba(2, 6, 23, 0.06);
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 24px;
-  cursor: pointer; /* clic oriunde */
-}
-.dz2-card:hover{ box-shadow: 0 24px 48px rgba(2,6,23,.10), 0 1px 2px rgba(2,6,23,.06); }
-.dz2-card.is-hover{
-  border-color: #2563eb;
-  box-shadow: inset 0 0 0 4px rgba(37,99,235,.12), 0 24px 48px rgba(2,6,23,.10);
-}
-
-@media (max-width: 860px){
-  .dz2-card{ grid-template-columns: 1fr; text-align: center; }
-  .dz2-right{ display:none; }
-}
-
-/* Restul rămâne cum era (brand-title, dz2-h1, btn-primary, file-bar etc.) */
