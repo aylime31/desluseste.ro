@@ -170,3 +170,75 @@ body{
   .dz2-card{grid-template-columns:1fr;padding:36px 24px;text-align:center}
   .dz2-right{display:none}
 }
+
+/* ========= HEADER SIMPLU ========= */
+.hero-blue {
+  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+  color: #fff;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  width: 100%;
+  max-width: 1280px;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.site-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ========= FILE SECTION (sub card) ========= */
+.file-bar-container {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 860px;
+}
+
+.file-bar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap; /* important pentru a nu suprapune butoanele */
+  gap: 10px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 200px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* responsive: sub 600px butoanele trec sub text */
+@media (max-width: 600px) {
+  .file-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
