@@ -43,8 +43,9 @@ export function RiskHeatmap({ probleme, categoryOrder = CANON_CATS_DEFAULT, onCe
     categoryOrder.forEach((c) => {
       grid[c] = { Scăzut: 0, Mediu: 0, Ridicat: 0 };
       seenCats.add(c);
+      
     });
-
+    
     const otherKey = "Altele";
     grid[otherKey] = { Scăzut: 0, Mediu: 0, Ridicat: 0 };
 

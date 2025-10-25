@@ -1,99 +1,106 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SiteHeader } from "../layout/SiteHeader";
 import { SiteFooter } from "../layout/SiteFooter";
-import { ProblemsPane } from "./ProblemsPane";
-import { RiskHeatmap } from "./RiskHeatmap";
-import { PdfViewer } from "./PdfViewer";
-import { ExecutiveSummary } from "./ExecutiveSummary";
+import { HighlightedText } from "./HighlightedText";
+import { ProblemsList } from "./ProblemList";
+
+type Nivel = "Scăzut" | "Mediu" | "Ridicat";
+
+type Problem = {
+  titlu?: string;
+  categorie?: string;
+  clauza_originala?: string;
+  excerpt?: string;
+  fragment?: string;
+  nivel_atentie?: Nivel;
+  recomandare?: string;
+};
 
 export function AnalysisDashboard({
   result,
   onReset,
 }: {
-  result: any;
+  result: {
+    text_original: string;
+    rezumat_executiv?: string;
+    probleme_identificate: Problem[];
+  };
   onReset: () => void;
 }) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
-  // funcție helper pentru highlight
-  const highlightRisks = (text: string, problems: any[]) => {
-    let highlighted = text;
-    problems.forEach((p) => {
-      if (!p.text) return;
-      const safeText = p.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // escape regex
-      const regex = new RegExp(safeText, "gi");
-      highlighted = highlighted.replace(
-        regex,
-        `<mark class="bg-yellow-200 px-1 rounded-sm">${p.text}</mark>`
-      );
-    });
-    return highlighted;
-  };
+  const problems: Problem[] = useMemo(
+    () => result?.probleme_identificate ?? [],
+    [result]
+  );
+
+  const summary = useMemo(() => {
+    // scurtăm puțin textul de rezumat, să rămână ușor de parcurs
+    const s = result.rezumat_executiv || "";
+    return s.length > 650 ? s.slice(0, 650) + "…" : s;
+  }, [result]);
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] font-[Comfortaa] text-slate-800">
-      <SiteHeader onReset={onReset} />
+    <div className="min-h-screen bg-app">
+      <SiteHeader onReset={() => { setActiveIdx(null); onReset(); }} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-        {/* ============ PDF / TEXT + Highlight ============ */}
-        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-700 mb-4">
-            Text analizat
-          </h2>
-          <div
-            className="text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{
-              __html: highlightRisks(result.text_original, result.probleme_identificate),
-            }}
-          />
-        </section>
-
-        {/* ============ Rezumat ============ */}
-        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-700 mb-2">
-              💬 Rezumat executiv
-            </h2>
-            <p className="text-[15px] text-slate-700 leading-relaxed">
-              {result.rezumat_executiv}
-            </p>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* CARD 1 — Text analizat (highlight) */}
+        <section className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-slate-900">Text analizat</h2>
+            <button
+              onClick={() => { setActiveIdx(null); onReset(); }}
+              className="btn-ghost"
+              title="Încărcă alt PDF"
+            >
+              Încarcă alt PDF
+            </button>
           </div>
 
-          {/* Probleme identificate */}
-          <div>
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">
-              ⚠️ Probleme identificate ({result.probleme_identificate.length})
-            </h2>
-            <ProblemsPane
-              count={result.probleme_identificate.length}
-              problems={result.probleme_identificate}
-              onSelect={(i) => setActiveIdx(i)}
+          <p className="text-sm text-slate-500 mb-4">
+            Am subliniat direct în text fragmentele relevante. Selectează o
+            problemă din lista de mai jos pentru a vedea exact pasajul.
+          </p>
+
+          <div className="rounded-xl border border-slate-200 p-4 max-h-[60vh] overflow-y-auto">
+            <HighlightedText
+              text={result.text_original}
+              problems={problems}
+              activeIndex={activeIdx}
             />
           </div>
-
-          {/* Distribuția riscurilor */}
-          <div>
-            <h2 className="text-lg font-semibold text-slate-700 mb-3">
-              📊 Distribuția riscurilor
-            </h2>
-            <RiskHeatmap probleme={result.probleme_identificate} />
-          </div>
         </section>
 
-        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6">
-  <h2 className="text-lg font-semibold text-slate-700 mb-4">Document analizat</h2>
-  <PdfViewer
-    fileUrl={result.fileUrl || "/uploads/latest.pdf"}
-    highlights={result.probleme_identificate.map((p: any, i: number) => ({
-      page: p.page || 1,
-      coords: p.coords || { x: 10 + i * 5, y: 20 + i * 5, width: 50, height: 4 },
-      color: "yellow",
-      text: p.descriere,
-    }))}
-  />
-</section>
+        {/* CARD 2 — Rezumat */}
+        <section className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-3">Rezumat</h2>
+          {summary ? (
+            <p className="text-slate-800 leading-relaxed">{summary}</p>
+          ) : (
+            <p className="text-slate-500">Nu a fost generat un rezumat.</p>
+          )}
+        </section>
+
+        {/* CARD 3 — Probleme identificate */}
+        <section className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-slate-900">
+              Probleme identificate{" "}
+              <span className="text-slate-400 font-normal">
+                ({problems.length})
+              </span>
+            </h2>
+          </div>
+
+          <ProblemsList
+            problems={problems}
+            activeIndex={activeIdx}
+            onSelect={(idx) => setActiveIdx(idx)}
+          />
+        </section>
       </main>
 
       <SiteFooter />

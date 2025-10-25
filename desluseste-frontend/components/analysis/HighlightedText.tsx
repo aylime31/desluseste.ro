@@ -1,77 +1,123 @@
 "use client";
-import { useEffect, useMemo, useRef } from "react";
-import type { IssueItem } from "@/lib/schemas";
+
+import { useMemo } from "react";
+
+type Nivel = "Scăzut" | "Mediu" | "Ridicat";
+
+type Problem = {
+  clauza_originala?: string;
+  excerpt?: string;
+  fragment?: string;
+  nivel_atentie?: Nivel;
+};
 
 type Props = {
   text: string;
-  probleme: IssueItem[];
+  problems?: Problem[];
   activeIndex: number | null;
 };
 
-function escapeRegExp(s: string) {
+function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function HighlightedText({ text, probleme, activeIndex }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
+function riskClass(nivel?: Nivel) {
+  switch (nivel) {
+    case "Ridicat":
+      return "bg-red-500/20 text-red-50";
+    case "Mediu":
+      return "bg-amber-500/25 text-amber-50";
+    default:
+      return "bg-emerald-500/20 text-emerald-50";
+  }
+}
 
+export function HighlightedText({ text, problems = [], activeIndex }: Props) {
   const parts = useMemo(() => {
-    const segments: Array<{ key: string; text: string; highlight?: number }> = [];
-    if (!text) return segments;
+    if (!text) return [{ key: "0", text }];
 
-    // Build regex to match any clauza_originala
-    const patterns = probleme
-      .map((p, idx) => ({ idx, pattern: p.clauza_originala?.trim() }))
-      .filter((p) => p.pattern && p.pattern.length > 8); // avoid very short noise
+    // 1) extragem fragmentele utilizabile din probleme
+    const pats = (problems ?? [])
+      .map((p, idx) => {
+        const raw =
+          p.clauza_originala ?? p.excerpt ?? p.fragment ?? "";
+        const pattern = raw.trim();
+        return { idx, pattern };
+      })
+      .filter((p) => p.pattern && p.pattern.length > 3);
 
-    if (patterns.length === 0) return [{ key: "0", text }];
+    if (pats.length === 0) return [{ key: "0", text }];
 
-    const tokens: Array<{ start: number; end: number; idx: number }> = [];
-    for (const { idx, pattern } of patterns) {
-      const re = new RegExp(escapeRegExp(pattern!), "gi");
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(text))) {
-        tokens.push({ start: m.index, end: m.index + m[0].length, idx });
+    // 2) expresie regulată combinată (case-insensitive)
+    const re = new RegExp(
+      "(" + pats.map((p) => escapeRegex(p.pattern)).join("|") + ")",
+      "gi"
+    );
+
+    const out: Array<
+      | { key: string; text: string }
+      | { key: string; text: string; matchForIdx: number }
+    > = [];
+
+    let last = 0;
+    let m: RegExpExecArray | null;
+
+    // 3) parcurgem toate potrivirile și decupăm segmentele
+    while ((m = re.exec(text)) !== null) {
+      const start = m.index;
+      const matched = m[0];
+
+      if (start > last) {
+        out.push({ key: `t-${last}`, text: text.slice(last, start) });
       }
-    }
-    tokens.sort((a, b) => a.start - b.start || a.end - b.end);
 
-    // Merge and slice text
-    let cursor = 0;
-    let k = 0;
-    for (const t of tokens) {
-      if (t.start > cursor) segments.push({ key: `t-${k++}`, text: text.slice(cursor, t.start) });
-      segments.push({ key: `h-${k++}`, text: text.slice(t.start, t.end), highlight: t.idx });
-      cursor = t.end;
-    }
-    if (cursor < text.length) segments.push({ key: `t-${k++}`, text: text.slice(cursor) });
-    return segments;
-  }, [text, probleme]);
+      // aflăm care pattern a produs match-ul curent
+      // (prima potrivire exactă pe textul matched)
+      const which =
+        pats.find((p) =>
+          new RegExp("^" + escapeRegex(p.pattern) + "$", "i").test(matched)
+        )?.idx ?? -1;
 
-  useEffect(() => {
-    if (activeIndex == null) return;
-    const el = containerRef.current?.querySelector<HTMLSpanElement>(`[data-hidx='${activeIndex}']`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeIndex]);
+      out.push({ key: `m-${start}`, text: matched, matchForIdx: which });
+      last = start + matched.length;
+    }
+
+    if (last < text.length) {
+      out.push({ key: `t-${last}`, text: text.slice(last) });
+    }
+
+    return out;
+  }, [text, problems]);
 
   return (
-    <div ref={containerRef} className="prose prose-invert max-w-none text-slate-300 leading-relaxed text-sm">
-      {parts.map((p) =>
-        p.highlight != null ? (
-          <span
-            key={p.key}
-            data-hidx={p.highlight}
-            className={`px-1 py-0.5 rounded-md transition-all ${activeIndex === p.highlight
-                ? "bg-yellow-400/40 ring-2 ring-yellow-400/60 shadow-lg shadow-yellow-400/20"
-                : "bg-yellow-400/20 hover:bg-yellow-400/30"
-              }`}
-          >
-            {p.text}
-          </span>
-        ) : (
-          <span key={p.key}>{p.text}</span>
-        )
-      )}
+    <div className="leading-relaxed whitespace-pre-wrap text-[15px] text-slate-900">
+      {parts.map((p, i) => {
+        if ("matchForIdx" in p) {
+          const idx = p.matchForIdx;
+          const nivel = problems[idx]?.nivel_atentie;
+          const isActive = activeIndex === idx;
+
+          return (
+            <mark
+              key={p.key}
+              data-idx={idx}
+              className={
+                "rounded px-0.5 " +
+                riskClass(nivel) +
+                (isActive
+                  ? " outline outline-2 outline-blue-500"
+                  : " outline-none")
+              }
+              title={
+                nivel ? `Nivel: ${nivel}` : "Fragment evidențiat"
+              }
+            >
+              {p.text}
+            </mark>
+          );
+        }
+        return <span key={p.key}>{p.text}</span>;
+      })}
     </div>
   );
 }
