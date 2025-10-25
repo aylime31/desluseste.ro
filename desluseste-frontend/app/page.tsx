@@ -1,26 +1,21 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import { analizeazaPdf } from "@/lib/api";
 import { normalizeAnalysis, type NormalizedAnalysisResponse } from "@/lib/schemas";
 import FileUpload from "@/components/ui/FileUpload";
 
 const AnalysisDashboard = dynamic(
-  () => import("@/components/analysis/AnalysisDashboard").then(m => m.AnalysisDashboard),
+  () => import("@/components/analysis/AnalysisDashboard").then((m) => m.AnalysisDashboard),
   { ssr: false }
 );
 
 export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<NormalizedAnalysisResponse | null>(null);
-  const liveRef = useRef<HTMLDivElement | null>(null);
-
-  const handleFileAccepted = useCallback((file: File) => {
-    setSelectedFile(file);
-    requestAnimationFrame(() => liveRef.current?.focus());
-  }, []);
 
   const handleAnalyze = useCallback(async () => {
     if (!selectedFile) return;
@@ -28,7 +23,6 @@ export default function HomePage() {
     try {
       const raw = await analizeazaPdf(selectedFile);
       setResult(normalizeAnalysis(raw));
-      requestAnimationFrame(() => liveRef.current?.focus());
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "A apărut o eroare la analiză.");
     } finally {
@@ -37,22 +31,22 @@ export default function HomePage() {
   }, [selectedFile]);
 
   const handleReset = useCallback(() => {
-    setResult(null);
     setSelectedFile(null);
+    setResult(null);
     try {
       if (window.location.hash) history.replaceState(null, "", window.location.pathname);
     } catch {}
   }, []);
 
-  // După analiză → dashboard
+  // După analiză -> dashboard
   if (result) {
     return <AnalysisDashboard result={result} onReset={handleReset} />;
   }
 
-  // Landing ultra-simplu (logo + dropzone)
+  // Landing minimal: header + card alb (clic & drag/drop)
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Hero bar albastru + logo centrat */}
+      {/* header simplu, doar logo */}
       <header className="hero-blue">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
           <div className="inline-flex items-center gap-2 font-extrabold tracking-wide">
@@ -63,10 +57,31 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Dropzone central ca Adobe */}
         <section className="upload-wrap">
-          <div ref={liveRef} tabIndex={-1} aria-live="polite" className="sr-only" />
-          <div className="dz2-card">
+          {/* CARD alb: clic oriunde => alege fișier; suport drag&drop direct pe card */}
+          <div
+            className={`dz2-card ${dragging ? "is-hover" : ""}`}
+            role="button"
+            aria-label="Încarcă PDF"
+            onClick={(e) => {
+              // nu declanșa click dublu când lovești butonul
+              const t = e.target as HTMLElement;
+              if (t.closest(".btn-primary")) return;
+              document.getElementById("file-input-hidden")?.click();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) setSelectedFile(f);
+            }}
+          >
+            {/* Stânga: text + buton */}
             <div className="dz2-left">
               <div className="brand-title">
                 <span className="brand-badge" aria-hidden />
@@ -87,33 +102,34 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* Dreapta: pictogramă */}
             <div className="dz2-right" aria-hidden>
-              {/* icon document mare */}
               <svg viewBox="0 0 160 160" width="160" height="160" fill="none">
                 <rect x="28" y="12" width="84" height="112" rx="8" fill="#E7F0FF" />
                 <rect x="40" y="44" width="60" height="10" rx="5" fill="#2563EB" opacity=".8" />
                 <rect x="40" y="62" width="60" height="10" rx="5" fill="#2563EB" opacity=".6" />
                 <rect x="40" y="80" width="40" height="10" rx="5" fill="#2563EB" opacity=".4" />
-                <path d="M112 124L144 92" stroke="#3a589aff" strokeWidth="10" strokeLinecap="round"/>
+                <path d="M112 124L144 92" stroke="#2563EB" strokeWidth="10" strokeLinecap="round" />
                 <rect x="104" y="116" width="40" height="28" rx="8" fill="#DBEAFE" />
               </svg>
             </div>
-
-            {/* zona de drop (overlay) */}
-            <FileUpload
-              onFileAccepted={setSelectedFile}
-              accept="application/pdf"
-              disabled={isLoading}
-              variant="light-overlay"  /* folosește overlay-ul cardului alb */
-              inputId="file-input-hidden"
-            />
           </div>
 
-          {/* Dacă s-a ales un fișier, afișează bara de acțiuni ca Adobe */}
+          {/* input-ul ascuns controlat de buton/card */}
+          <FileUpload
+            onFileAccepted={setSelectedFile}
+            accept="application/pdf"
+            disabled={isLoading}
+            inputId="file-input-hidden"
+          />
+
+          {/* După selectare fișier: bară acțiuni */}
           {selectedFile && (
             <div className="file-bar">
               <div className="file-info">
-                <span className="file-icon" aria-hidden>📄</span>
+                <span className="file-icon" aria-hidden>
+                  📄
+                </span>
                 <div>
                   <div className="file-name">{selectedFile.name}</div>
                   <div className="file-size">
@@ -122,11 +138,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="file-actions">
-                <button
-                  className="btn-primary"
-                  onClick={handleAnalyze}
-                  disabled={isLoading}
-                >
+                <button className="btn-primary" onClick={handleAnalyze} disabled={isLoading}>
                   {isLoading ? "Se procesează…" : "Analizează"}
                 </button>
                 <button className="btn-ghost" onClick={handleReset} disabled={isLoading}>
