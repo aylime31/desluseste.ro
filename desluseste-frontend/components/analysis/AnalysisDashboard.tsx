@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { RiskHeatmap } from "./RiskHeatMap";
-import { ExecutiveSummary } from "./ExecutiveSummary";
-import { ProblemsPane } from "./ProblemsPane";
-import { DocumentPane } from "./DocumentPane";
+import { useState } from "react";
 import { SiteHeader } from "../layout/SiteHeader";
 import { SiteFooter } from "../layout/SiteFooter";
+import { ProblemsPane } from "./ProblemsPane";
+import { RiskHeatmap } from "./RiskHeatMap";
+import { ExecutiveSummary } from "./ExecutiveSummary";
 
 export function AnalysisDashboard({
   result,
@@ -16,36 +15,56 @@ export function AnalysisDashboard({
   onReset: () => void;
 }) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
-  const levels = useMemo(
-    () => result?.probleme_identificate.map((p: any) => p.nivel_atentie) ?? [],
-    [result]
-  );
+
+  // funcție helper pentru highlight
+  const highlightRisks = (text: string, problems: any[]) => {
+    let highlighted = text;
+    problems.forEach((p) => {
+      if (!p.text) return;
+      const safeText = p.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // escape regex
+      const regex = new RegExp(safeText, "gi");
+      highlighted = highlighted.replace(
+        regex,
+        `<mark class="bg-yellow-200 px-1 rounded-sm">${p.text}</mark>`
+      );
+    });
+    return highlighted;
+  };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] font-[Comfortaa] text-slate-800 flex flex-col">
-      {/* HEADER */}
-      <SiteHeader onReset={() => { setActiveIdx(null); onReset(); }} />
+    <div className="min-h-screen bg-[#f9fafb] font-[Comfortaa] text-slate-800">
+      <SiteHeader onReset={onReset} />
 
-      {/* CONȚINUT */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-        
-        {/* --- Secțiunea 1: Rezumat și heatmap --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white shadow-md rounded-2xl p-6 border border-slate-100">
-            <ExecutiveSummary summary={result.rezumat_executiv} levels={levels} />
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        {/* ============ PDF / TEXT + Highlight ============ */}
+        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6">
+          <h2 className="text-lg font-semibold text-slate-700 mb-4">
+            Text analizat
+          </h2>
+          <div
+            className="text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{
+              __html: highlightRisks(result.text_original, result.probleme_identificate),
+            }}
+          />
+        </section>
+
+        {/* ============ Rezumat ============ */}
+        <section className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-700 mb-2">
+              💬 Rezumat executiv
+            </h2>
+            <p className="text-[15px] text-slate-700 leading-relaxed">
+              {result.rezumat_executiv}
+            </p>
           </div>
 
-          <div className="lg:col-span-2 bg-white shadow-md rounded-2xl p-6 border border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-500 mb-4 uppercase tracking-wide">
-              Distribuția riscurilor
-            </h3>
-            <RiskHeatmap probleme={result.probleme_identificate} />
-          </div>
-        </div>
-
-        {/* --- Secțiunea 2: Probleme + Document --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white shadow-md rounded-2xl p-6 border border-slate-100">
+          {/* Probleme identificate */}
+          <div>
+            <h2 className="text-lg font-semibold text-slate-700 mb-4">
+              ⚠️ Probleme identificate ({result.probleme_identificate.length})
+            </h2>
             <ProblemsPane
               count={result.probleme_identificate.length}
               problems={result.probleme_identificate}
@@ -53,14 +72,14 @@ export function AnalysisDashboard({
             />
           </div>
 
-          <div className="bg-white shadow-md rounded-2xl p-6 border border-slate-100">
-            <DocumentPane
-              rawText={result.text_original}
-              problems={result.probleme_identificate}
-              activeIndex={activeIdx}
-            />
+          {/* Distribuția riscurilor */}
+          <div>
+            <h2 className="text-lg font-semibold text-slate-700 mb-3">
+              📊 Distribuția riscurilor
+            </h2>
+            <RiskHeatmap probleme={result.probleme_identificate} />
           </div>
-        </div>
+        </section>
       </main>
 
       <SiteFooter />
