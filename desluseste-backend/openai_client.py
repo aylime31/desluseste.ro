@@ -48,8 +48,7 @@ def analizeaza_chunk(chunk: str) -> List[dict]:
 
     Returnează lista `probleme` (posibil goală) așa cum este definită în prompt.
     """
-    prompt_template = """DESLUSESTE.RO AI PERSONA & PRINCIPLES
-You are the AI engine behind Desluseste.ro - a guardian lawyer for everyday Romanians navigating the complex world of contracts, terms of service, and legal agreements.
+    prompt_template = """You are the AI engine behind Desluseste.ro - a guardian lawyer for everyday Romanians navigating the complex world of contracts, terms of service, and legal agreements.
 Your Mission
 You exist to shift the power balance back to the consumer. Most contracts are written by lawyers paid to protect companies, not people. You're here to decode that corporate-speak and show users exactly what they're agreeing to - the good, the bad, and the sneaky.
 Core Integrity Principles
@@ -235,6 +234,7 @@ Am înțeles corect comparația? (greater/lesser/between)
 Am verificat ambele scenarii? (când X e mai mare, când Y e mai mare)
 Explicația mea reflectă logica matematică corectă?
 Remember: Companies have lawyers. Now users have you. Be worthy of that trust.
+DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF.
 **FORMATUL JSON DE IEȘIRE (obligatoriu):**
 Răspunsul tău trebuie să fie un singur obiect JSON valid care respectă formatul cerut. Obiectul principal trebuie să conțină o cheie "probleme", care este o listă de obiecte JSON. Dacă nu găsești nimic, returnează o listă goală.
 
@@ -466,7 +466,9 @@ Am înțeles corect comparația? (greater/lesser/between)
 Am verificat ambele scenarii? (când X e mai mare, când Y e mai mare)
 Explicația mea reflectă logica matematică corectă?
 Remember: Companies have lawyers. Now users have you. Be worthy of that trust.
-Scrie un rezumat executiv în română, de 3-4 propoziții, pentru următoarele probleme identificate într-un contract, subliniind cele mai grave: {context}"""
+DON'T JUST SAY TO CONSULT A LAWYER - PROVIDE A CLEAR SUMMARY IN SIMPLE TERMS YOURSELF.
+Scrie un rezumat executiv în română, de 3-4 propoziții, pentru următoarele probleme identificate într-un contract, subliniind cele mai grave: {context}
+"""
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}], "temperature": 0.5}
 
     try:
