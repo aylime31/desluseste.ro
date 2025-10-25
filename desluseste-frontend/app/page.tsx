@@ -1,92 +1,59 @@
 "use client";
 
 import Image from "next/image";
-import dynamic from "next/dynamic";
-import { useCallback, useRef, useState } from "react";
-
+import { useState } from "react";
 import FileUpload from "@/components/ui/FileUpload";
-import { analizeazaPdf } from "@/lib/api";
-import { normalizeAnalysis, type NormalizedAnalysisResponse } from "@/lib/schemas";
-
-// Dashboard-ul îl încărcăm lazy doar după analiză
-const AnalysisDashboard = dynamic(
-  () => import("@/components/analysis/AnalysisDashboard").then(m => m.AnalysisDashboard),
-  { ssr: false }
-);
 
 export default function HomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<NormalizedAnalysisResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const liveRef = useRef<HTMLDivElement | null>(null);
 
-  const handleAnalyze = useCallback(async () => {
-    if (!selectedFile) return;
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const raw = await analizeazaPdf(selectedFile);
-      const normalized = normalizeAnalysis(raw);
-      setResult(normalized);
-      requestAnimationFrame(() => liveRef.current?.focus());
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "A apărut o eroare la analiză.";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedFile]);
-
-  const handleReset = useCallback(() => {
-    setResult(null);
-    setSelectedFile(null);
-    setError(null);
-    try {
-      if (window.location.hash) history.replaceState(null, "", window.location.pathname);
-    } catch {}
-  }, []);
-
-  // Dacă avem rezultate, randăm dashboard-ul
-  if (result) {
-    return <AnalysisDashboard result={result} onReset={handleReset} />;
-  }
+  // TODO: conectează “Analizează” la fluxul tău real de analiză (analizeazaPdf + setIsLoading etc.)
+  const handleAnalyze = async () => {
+    if (!selectedFile || isLoading) return;
+    // setIsLoading(true);
+    // try { ... } finally { setIsLoading(false); }
+  };
 
   return (
     <>
-      {/* HEADER – doar logo, cu padding corect */}
+      {/* HEADER cu doar logo */}
       <header className="hero-blue">
         <div className="header-container">
           <Image
             src="/logo.png"
-            alt="desluseste.ro"
-            width={220}
-            height={48}
+            alt="Deslușește.ro"
+            width={160}
+            height={40}
             className="site-logo"
             priority
           />
         </div>
       </header>
 
-      {/* CONȚINUT – card + bara FIȘIER (sub card) */}
+      {/* CONȚINUT PRINCIPAL */}
       <main className="upload-wrap">
-        {/* zonă pentru focus / a11y */}
-        <div ref={liveRef} tabIndex={-1} aria-live="polite" className="sr-only" />
-
         <div className="dz2-card">
+          {/* Ținem FileUpload activ pentru input & drag-drop, dar îl ascundem vizual.
+              Butonul vizibil de mai jos (label) deschide dialogul prin htmlFor. */}
+          <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
+            <FileUpload
+              onFileAccepted={setSelectedFile}
+              accept="application/pdf"
+              disabled={isLoading}
+              inputId="file-input-hidden"
+            />
+          </div>
+
           <div className="dz2-left">
-            <h1 className="dz2-h1">Încarcă un PDF :)</h1>
+            <h1 className="dz2-h1">Încarcă un PDF :) </h1>
             <p className="dz2-sub">Trage un fișier aici sau alege de pe dispozitiv.</p>
 
             <div className="dz2-actions">
-              <FileUpload
-                onFileAccepted={setSelectedFile}
-                accept="application/pdf"
-                disabled={isLoading}
-                inputId="file-input-hidden"
-              />
+              {/* Butonul vizibil care deschide input-ul ascuns din FileUpload */}
+              <label htmlFor="file-input-hidden" className="btn-primary" style={{ cursor: "pointer" }}>
+                Selectează un fișier
+              </label>
             </div>
           </div>
 
@@ -101,9 +68,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Bara cu fișierul – SUB card, centrată */}
+        {/* Afișează fișierul sub card, nu în dreapta */}
         {selectedFile && (
-          <div className="file-bar-container">
+          <div className="file-bar-container" style={{ maxWidth: 860, width: "100%" }}>
             <div className="file-bar">
               <div className="file-info">
                 <span className="file-icon" aria-hidden>📄</span>
@@ -121,15 +88,6 @@ export default function HomePage() {
                   Anulează
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="file-bar-container" aria-live="assertive">
-            <div className="file-bar" style={{ borderColor: "#ef4444" }}>
-              <div className="file-name" style={{ color: "#b91c1c" }}>{error}</div>
-              <button className="btn-ghost" onClick={() => setError(null)}>Închide</button>
             </div>
           </div>
         )}
